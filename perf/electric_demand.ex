@@ -8,12 +8,15 @@ defmodule TimeSeries do
 			["true"] ->
 				async(5, 100_000, true)
 			[x] ->
+				IO.puts "running with #{x} concurrent"
 				async(String.to_integer(x))
 			[x, y] ->
+				IO.puts "running with #{x} concurrent, #{y} times"
 				async(String.to_integer(x), String.to_integer(y))
 			[x, y, z] ->
 				async(String.to_integer(x), String.to_integer(y), z == "true")
 			_ ->
+				IO.puts "running with defaults"
 				async()
 		end
 		time_end = :os.system_time(:milli_seconds)
