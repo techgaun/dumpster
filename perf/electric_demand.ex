@@ -1,41 +1,28 @@
-defmodule Crap do
-
+defmodule Crap2 do
   def calc(num_points) do
+    time_start = :os.system_time(:milli_seconds)
+    :random.seed(:os.timestamp)
 
-    time_start = :os.system_time(:milli_seconds);
-    collection = 1..num_points;
+    collection = Enum.map(1..num_points, fn (_) -> :random.uniform() * 100 end)
+    IO.puts "got collection"
+    chunk_size = 15 * 60
+    chunks = Enum.chunk(collection, chunk_size, 1)
+    IO.puts "got chunks"
+    IO.puts "num chunks: #{length(chunks)}"
 
-    collection
-    |> Enum.map(&Task.async(fn -> &1 = get_random end))
-    |> Enum.map(&Task.await/1)
-    |> Enum.chunk(15 * 60, 1)
-    |> Enum.map(&Task.async(fn -> average(&1) end))
+    chunks
+    |> Stream.map(fn (chunk) ->
+      Task.async(fn () ->
+        sum = Enum.sum(chunk)
+        len = length(chunk)
+        sum / len
+      end)
+    end)
     |> Enum.map(&Task.await/1)
     |> IO.inspect
-    
-    time_end = :os.system_time(:milli_seconds);
-    IO.puts("Total time: ");
-    IO.puts(time_end - time_start);
 
-  end
-
-  def sum([head|tail], total) do
-      sum(tail, head + total)
-  end
-
-  def sum([], total) do
-      total
-  end
-
-  def average(list) do
-      len = length list;
-      sum(list, 0) / len;
-  end
-
-  def get_random do
-    :random.seed(:os.timestamp)
-    :random.uniform * 100
+    time_end = :os.system_time(:milli_seconds)
+    IO.puts "total time: #{time_end - time_start}"
   end
 end
-
-Crap.calc(100_000)
+Crap2.calc(100_000)
