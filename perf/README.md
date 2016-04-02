@@ -1,0 +1,3 @@
+## Electric Demand
+
+This section, we created some simple scripts to calculate electric demand.  A little background on this, when you look at electricy usage, you can't just plot the usage over time.  Utilities charge based on your "peak usage" during the last 15 minutes, so what you need to do is, for each second, you need to calculate the average usage for the last 15 minutes.  So, we wrote a several scripts to test this out.  In PHP and Python, this was pretty straight forward, but with our lack of functional programming, it was hard to get our Elixir script working, so you'll see several revisions to our .ex script before we got it to a performant level.  Many thanks to @jordan0day for helping us out.
