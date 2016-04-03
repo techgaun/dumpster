@@ -1,5 +1,10 @@
 defmodule Cat do
 	defstruct age: 5, name: "kitty"
+
+	def pet do
+		:purr
+	end
+	
 end
 
 defmodule Wolf do
@@ -9,6 +14,11 @@ defmodule Wolf do
 	def pet do
 		:bite
 	end
+end
+
+defmodule Shark do
+	@derive Animal
+	defstruct age: 15, name: "Jaws"
 end
 
 defmodule Dog do

@@ -1,6 +1,7 @@
-pet = %Cat{}
-pet2 = %Dog{}
+pet = %Cat{:name => "Alexander"}
+pet2 = %Dog{:name => "Fido"}
 pet3 = %Wolf{}
-IO.puts "is #{pet.name} friendly? #{Animal.friendly?(pet)}"
-IO.puts "is #{pet2.name} friendly? #{Animal.friendly?(pet2)}"
-IO.puts "is #{pet3.name} friendly? #{Animal.friendly?(pet3)}"
+pet4 = %Shark{}
+pets = [pet, pet2, pet3, pet4]
+
+for pet <- pets, do: IO.puts "is #{pet.name} friendly? #{Animal.friendly?(pet)}"

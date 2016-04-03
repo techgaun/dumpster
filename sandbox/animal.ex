@@ -10,3 +10,7 @@ end
 defimpl Animal, for: Cat do
 	def friendly?(_), do: true
 end
+
+defimpl Animal, for: Dog do
+	def friendly?(_), do: true
+end
