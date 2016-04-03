@@ -1,23 +1,12 @@
 defprotocol Animal do
-  @doc "animals do various things"
-  def eat(food)
-  def sleep(time)
-	def speak(words)
+  @doc "animals do things"
+	def friendly?(_)
 end
 
 defimpl Animal, for: Any do
-  def eat(_), do: :nothing
-  def sleep(_), do: 8
-	def speak(words), do: :nothing
+	def friendly?(_), do: false
 end
 
-defmodule Dog do
-	def eat(food) do
-	end
-
-	def sleep(time) do
-	end
-end
-
-defmodule Cat do
+defimpl Animal, for: Cat do
+	def friendly?(_), do: true
 end
