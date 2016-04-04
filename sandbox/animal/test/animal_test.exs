@@ -19,11 +19,18 @@ defmodule AnimalTest do
   end
 
 	test "Sharks are not friendly", context do
-		assert Animal.friendly?(context[:shark]) != true
+		jaws = context[:shark]
+		assert jaws.name == "Jaws"
+		assert Animal.friendly?(jaws) != true
   end
 
 	test "Wolves are not friendly", context do
 		assert Animal.friendly?(context[:wolf]) != true
   end
 
+	test "Petting some sharks are not a good idea", context do
+		assert Animal.pet(context[:shark]) == :chomp
+		oscar = %Shark{:name => "oscar"}
+		assert Animal.pet(oscar) == :lick
+	end
 end

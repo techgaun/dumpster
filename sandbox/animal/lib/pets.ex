@@ -53,5 +53,12 @@ defimpl Animal, for: Shark do
 	def friendly?(_), do: false
 
 	@spec pet(String.t) :: :atom
-	def pet(_), do: :chomp
+	def pet(animal) do
+		case animal.name do
+			"oscar" ->
+				:lick
+			_ ->
+				:chomp
+		end
+	end
 end
