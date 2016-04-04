@@ -4,4 +4,5 @@ pet3 = %Wolf{}
 pet4 = %Shark{}
 pets = [pet, pet2, pet3, pet4]
 
-for pet <- pets, do: IO.puts "is #{pet.name} friendly? #{Animal.friendly?(pet)}"
+for pet <- pets, Animal.friendly?(pet), do: Pet.checkup(pet)
+
