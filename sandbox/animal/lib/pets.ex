@@ -11,7 +11,17 @@ end
 defmodule Cat do
 	@behaviour Pet
 	defstruct age: 5, name: "kitty"
+end
 
+defmodule Dog do
+	@behaviour Pet
+	@derive Animal
+	defstruct age: 2, name: "Max"
+
+	@spec pet :: :atom
+	def pet do
+		:woof
+	end
 end
 
 defmodule Wolf do
@@ -31,14 +41,16 @@ defmodule Shark do
 	defstruct age: 15, name: "Jaws"
 end
 
-defmodule Dog do
-	@behaviour Pet
-	@derive Animal
-	defstruct age: 2, name: "Max"
+defimpl Animal, for: Cat do
+	def friendly?(_), do: true
+end
 
-	@spec pet :: :atom
-	def pet do
-		:woof
-	end
+defimpl Animal, for: Dog do
+	def friendly?(_), do: true
+end
 
+defimpl Animal, for: Shark do
+
+	@spec pet(String.t) :: :atom
+	def pet(_), do: :chomp
 end
