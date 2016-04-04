@@ -2,19 +2,28 @@ defmodule AnimalTest do
   use ExUnit.Case
   doctest Animal
 
-  test "Dog is friendly" do
+	setup_all do
 		dog = %Dog{}
-		assert Animal.friendly?(dog) == true
-  end
-
-	test "Cat is friendly" do
-		cat = %Cat{}
-		assert Animal.friendly?(cat) == true
-  end
-
-	test "Shark is not friendly" do
 		shark = %Shark{}
-		assert Animal.friendly?(shark) == true
+		cat = %Cat{}
+		wolf = %Wolf{}
+		{:ok, dog: dog, shark: shark, cat: cat, wolf: wolf}
+	end
+	
+  test "Dog is friendly", context do
+		assert Animal.friendly?(context[:dog]) == true
+  end
+
+	test "Cat is friendly", context do
+		assert Animal.friendly?(context[:cat]) == true
+  end
+
+	test "Sharks are not friendly", context do
+		assert Animal.friendly?(context[:shark]) != true
+  end
+
+	test "Wolves are not friendly", context do
+		assert Animal.friendly?(context[:wolf]) != true
   end
 
 end
