@@ -29,8 +29,11 @@ defmodule AnimalTest do
   end
 
 	test "Petting some sharks are not a good idea", context do
-		assert Animal.pet(context[:shark]) == :chomp
+		jaws = context[:shark]
+		assert Animal.pet(jaws) == :chomp
 		oscar = %Shark{:name => "oscar"}
 		assert Animal.pet(oscar) == :lick
+		assert Shark.pet(oscar) == :chomp
+		assert Shark.pet(jaws) == :lick
 	end
 end

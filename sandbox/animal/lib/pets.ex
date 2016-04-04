@@ -39,6 +39,16 @@ defmodule Shark do
 	@behaviour Pet
 	@derive Animal
 	defstruct age: 15, name: "Jaws"
+
+	@spec pet(String.t) :: :atom
+	def pet(animal) do
+		if animal.name =~ ~r/jaws/i do
+				:lick
+		else
+				:chomp
+		end
+	end
+	
 end
 
 defimpl Animal, for: Cat do
