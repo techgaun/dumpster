@@ -14,7 +14,7 @@ defmodule XmlParsing.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :httpoison]]
   end
 
   # Dependencies can be Hex packages:
@@ -27,6 +27,10 @@ defmodule XmlParsing.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:httpoison, "~> 0.8.0"},
+      {:exml, git: "https://github.com/expelledboy/exml.git", tag: "v0.1.0"},
+      {:floki, "~> 0.8"}
+    ]
   end
 end
