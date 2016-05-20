@@ -1,24 +1,17 @@
 defmodule Brightergy do
 
-    def info do
-        {:language, :services, :tools}
+    def info(:languages), do: {"Elixir", "Python", "Javascript"}
+    def info(:frameworks), do: {"Phoenix", "ReactJS"}
+    def info(:services), do: {"Heroku", "Runscope", "Postgres", "Honeybadger", "Papertrail", "Intercom", "Auth0"}
+    def info(:tools), do: {"GitHub", "Trello", "SemaphoreCI", "InVision", "Slack"}
+    def info(:hardware), do: {"Schneider", "Digi", "Zigbee", "eGauge", "Webbox", "Fornius"}
+    def info(:brighterlink) do
+        {:languages, :frameworks, :services, :tools, :hardware}
         |> Tuple.to_list
-        |> Enum.map(fn x -> info(x) |> Tuple.to_list |> Enum.join(",") end)
-        |> Enum.join(" | ")
+        |> Enum.map(fn(x) -> "#{x} = " <> (info(x) |> Tuple.to_list |> Enum.join(",")) end)
+        |> Enum.join(" \n")
         |> IO.puts
-    end
-
-    def info(:language) do
-        {"Elixir", "Phoenix", "Python", "ReactJS"}
-    end
-
-    def info(:services) do
-        {"Heroku", "Runscope", "Postgres", "Honeybadger", "Papertrail", "Intercom", "Auth0"}
-    end
-
-    def info(:tools) do
-        {"GitHub", "Trello", "SemaphoreCI", "InVision", "Slack"}
     end
 end
 
-Brightergy.info
+Brightergy.info(:brighterlink)
