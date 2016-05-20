@@ -1,0 +1,120 @@
+defmodule XmlParsingTest do
+  use ExUnit.Case
+  doctest XmlParsing
+  require Record
+
+  Record.defrecord :xmlElement, Record.extract(:xmlElement, from_lib: "xmerl/include/xmerl.hrl")
+  Record.defrecord :xmlAttribute, Record.extract(:xmlAttribute, from_lib: "xmerl/include/xmerl.hrl")
+  Record.defrecord :xmlText, Record.extract(:xmlText, from_lib: "xmerl/include/xmerl.hrl")
+
+  def hex_to_int(hex) do
+    hex |> String.upcase |> Base.decode16! |> :binary.decode_unsigned |> to_string
+  end
+
+  def get_meta_data(xml) do
+    :xmerl_xpath.string('./data/@*', xml)
+      |> Stream.map(&(att = xmlAttribute(&1)))
+      |> Enum.map(fn att ->
+          value = 
+            case to_string att[:value] do
+              "0x" <> hex -> hex_to_int(hex)
+              other -> other
+            end
+          {att[:name], value}
+        end
+      )
+      |> Enum.into(%{})
+  end
+
+  def get_register_name(xml) do
+    :xmerl_xpath.string('//cname', xml)
+      |> List.first
+      |> xmlElement(:content)
+      |> List.first
+      |> xmlText(:value)
+      |> to_string
+  end
+
+  def get_values(xml) do   
+    :xmerl_xpath.string('//r', xml)
+      |> Stream.map(&(xmlElement(&1, :content) |> List.first))
+      |> Enum.map(&(xmlElement(&1, :content) |> List.first |> xmlText(:value)))
+  end
+
+  def parse_egauge_data(data) do
+    {xml, _rest} = :xmerl_scan.string(to_char_list(data))
+
+    %{meta_data: get_meta_data(xml), registers: get_register_name(xml), values: get_values(xml)}
+  end
+
+  def get_egauge_data(url) do
+    # Digest Auth header for simple implementation is as follows
+    # digest=response = md5( md5(username:domain:password):nounce:md5(method:uri) )
+    # Sample: %{"Authorization" => 'Digest username="owner", realm="eGauge Administration", nonce="", uri="/cgi-bin/egauge?n=5", response="0d9c0fa2aef29fac6c05788879f88a8d", opaque=""'}
+    username = "owner"
+    password = "default"
+    realm = "eGauge Administration"
+    method = "GET"
+    uri = "/cgi-bin/egauge-show?S&n=60"
+    nonce = ""
+
+    time_start = :os.system_time(:milli_seconds)
+    a1 = :crypto.hash(:md5, Enum.join([username, realm, password], ":")) |> Base.encode16 |> String.downcase
+    a2 = :crypto.hash(:md5, Enum.join([method, uri], ":")) |> Base.encode16 |> String.downcase
+    auth = :crypto.hash(:md5, Enum.join([a1, nonce, a2], ":")) |> Base.encode16 |> String.downcase
+    authorization = 'Digest username="#{username}", realm="#{realm}", nonce="#{nonce}", uri="#{uri}", response="#{auth}", opaque=""'
+    time_end = :os.system_time(:milli_seconds)
+
+    IO.puts("Auth header: " <> to_string authorization)
+    IO.puts("Auth created in " <> (to_string (time_end - time_start)) <> "ms")
+    HTTPoison.start
+    case HTTPoison.get("#{url}#{uri}", %{"Authorization" => authorization}) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        time_start = :os.system_time(:milli_seconds)
+        parsed_data = parse_egauge_data(body)
+        time_end = :os.system_time(:milli_seconds)
+
+        IO.puts("Parsed:")
+        IO.inspect parsed_data
+        IO.puts("Parsed in " <> (to_string (time_end - time_start)) <> "ms")
+
+        {:ok, url}
+      {:ok, %HTTPoison.Response{status_code: 404}} ->
+        IO.puts "Not found :("
+        {:error, "#{url} not found"}
+      {:ok, %HTTPoison.Response{status_code: 401}} ->
+        IO.puts "Unauthorized"
+        {:error, "#{url} not authorized"}
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        IO.inspect reason
+        {:error, "#{url}: #{reason}"}
+    end
+  end
+
+  def await_response([]) do nil end
+  def await_response(tasks) do
+    receive do
+      {ref, reply} ->
+        case reply do
+          {:ok, url} -> IO.puts "OK: #{url}"
+          {:error, message} -> IO.puts "Error: #{message}"
+        end
+
+        await_response(List.delete(tasks, ref))
+    end
+  end
+
+  def timed_event do
+    ["http://egauge17983.egaug.es", "http://egauge17984.egaug.es", "http://blahblah.egaug.es"]
+      |> Enum.map(fn url -> Task.async(fn -> get_egauge_data(url) end).ref end)
+      |> await_response
+
+    :timer.sleep(5000)
+
+    timed_event()
+  end
+
+  test "testing http request with digest auth header" do
+    timed_event()
+  end
+end
