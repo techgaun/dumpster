@@ -6,7 +6,7 @@ defmodule Brightergy do
     def info(:services), do: {"Heroku", "Runscope", "Postgres", "Honeybadger", "Papertrail", "Intercom", "Auth0"}
     def info(:tools), do: {"GitHub", "Trello", "SemaphoreCI", "InVision", "Slack"}
     def info(:hardware), do: {"Schneider", "Digi", "Zigbee", "eGauge", "Webbox", "Fornius"}
-    def info(:methodologies), do: {"Continuous Delivery", "Design Thinking"}
+    def info(:methodologies), do: {"Continuous Delivery", "Design Thinking", "Mobile First"}
     def info(:brighterlink) do
         {:languages, :frameworks, :services, :tools, :hardware, :methodologies}
         |> Tuple.to_list
