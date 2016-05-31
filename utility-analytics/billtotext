@@ -21,14 +21,20 @@ for f in "${SRC_DIR}/"*.pdf; do
   msg "Trying ${f}"
   fname=${f##*/}
   fname_noext=${fname%.*}
-  output="${DEST_DIR}/${fname_noext}"
+  output="${DEST_DIR}/${fname_noext}.txt"
   pdftotext -q "${f}" "${output}"
   fsize=$(stat -c%s "${output}")
   if [ $fsize -le 100 ]; then
-    msg "${f} looks like a non-native pdf. Trying convert and tesseract OCR"
-    img_temp="${fname_noext}.png"
-    convert -density 300 "${f}" -quality 60 -blur 5 -background white -alpha remove -colorspace gray -white-threshold 25% "${img_temp}"
-    tesseract "${img_temp}" "${output}"
-    rm -f "${img_temp}"
+    error "${f} looks like a non-native pdf."
+    msg "Trying convert and tesseract OCR"
+    img_temp="${fname_noext}.jpeg"
+    convert -density 300 "${f}" -quality 10 -blur 1 -auto-level "${img_temp}"
+    result=""
+    for img in "${fname_noext}"-*.jpeg; do
+      out=$(tesseract "${img}" stdout)
+      result="${result}\n\n${out}"
+      rm -f "${img}"
+    done
+    echo "${result}" > "${output}"
   fi
 done
