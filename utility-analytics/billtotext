@@ -35,6 +35,6 @@ for f in "${SRC_DIR}/"*.pdf; do
       result="${result}\n\n${out}"
       rm -f "${img}"
     done
-    echo "${result}" > "${output}"
+    echo -e "${result}" > "${output}"
   fi
 done
