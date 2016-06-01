@@ -1,4 +1,3 @@
-
 defmodule Brightergy do
 
     def info(:languages), do: {"Elixir", "Python", "Javascript"}
