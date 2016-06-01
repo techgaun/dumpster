@@ -22,7 +22,7 @@ defmodule UtilityAnalyzer do
     |> Enum.each(fn fname ->
       require Logger
       Logger.warn inspect "Starting child for #{fname}"
-      Supervisor.start_child(sup_pid, fname)
+      Logger.warn inspect Supervisor.start_child(sup_pid, [[name: fname]])
     end)
     {:ok, sup_pid}
   end

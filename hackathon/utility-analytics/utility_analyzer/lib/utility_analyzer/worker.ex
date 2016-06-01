@@ -5,8 +5,9 @@ defmodule UtilityAnalyzer.Worker do
   require Logger
 
   def start_link(pdf_file) do
-    Logger.debug inspect "Starting worker process for #{pdf_file}"
-    GenServer.start_link(__MODULE__, pdf_file, {:global, process_ident(pdf_file)})
+    Logger.debug inspect "Starting worker process for #{pdf_file[:name]}"
+    Logger.debug inspect pdf_file
+    GenServer.start_link(__MODULE__, pdf_file, name: process_ident(pdf_file[:name]))
   end
 
   def shutdown(pdf_file) do
@@ -20,7 +21,7 @@ defmodule UtilityAnalyzer.Worker do
 
   def handle_info(:extrparse, pdf_file) do
     outfile = "#{tmp_dir}/#{random_string(20)}.txt"
-    Processor.pdftotext(pdf_file, outfile)
+    Processor.pdftotext(pdf_file[:name], outfile)
     {:stop, :normal}
   end
 
@@ -32,5 +33,5 @@ defmodule UtilityAnalyzer.Worker do
     :crypto.strong_rand_bytes(length) |> Base.url_encode64 |> binary_part(0, length)
   end
 
-  defp process_ident(str) when is_bitstring(str), do: String.replace(str, " ", "_")
+  defp process_ident(str) when is_bitstring(str), do: String.replace(str, ~r/(\/|\s|-|\.)/, "_") |> String.strip(?_) |> String.to_atom 
 end
