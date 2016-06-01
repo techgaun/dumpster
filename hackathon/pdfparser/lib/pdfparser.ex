@@ -1,6 +1,13 @@
 defmodule Pdfparser do
   import Pdf2htmlex
 
+  def parse_dir(dir) do
+    {:ok, files} = File.ls(dir)
+    files
+    |>
+    Pdfparser.parse    
+  end
+
   def parse(files) when is_list(files) do
     Enum.map(files, fn(x) -> parse(x) end)
   end
@@ -10,16 +17,12 @@ defmodule Pdfparser do
     IO.puts "converting #{file} to #{out_file}"
     Path.join('pdfs', file)
     |> open 
-    |> zoom(1.5)
+    |> externalize_image
+    |> externalize_font
     |> hdpi(96)
     |> vdpi(96)
     |> convert_to!(Path.join('html', out_file))
   end
 end
 
-
-["03440-96007.pdf",
-"33100-0116.pdf"]
-|>
-Pdfparser.parse
-
+Pdfparser.parse_dir("pdfs")
