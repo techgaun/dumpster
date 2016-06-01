@@ -1,0 +1,36 @@
+defmodule UtilityAnalyzer.Worker do
+  use GenServer
+  alias UtilityAnalyzer.Processor
+  import UtilityAnalyzer.Config
+  require Logger
+
+  def start_link(pdf_file) do
+    Logger.debug inspect "Starting worker process for #{pdf_file}"
+    GenServer.start_link(__MODULE__, pdf_file, {:global, process_ident(pdf_file)})
+  end
+
+  def shutdown(pdf_file) do
+    GenServer.stop(process_ident(pdf_file), :normal)
+  end
+
+  def init(pdf_file) do
+    Process.send(self(), :extrparse, [])
+    {:ok, pdf_file}
+  end
+
+  def handle_info(:extrparse, pdf_file) do
+    outfile = "#{tmp_dir}/#{random_string(20)}.txt"
+    Processor.pdftotext(pdf_file, outfile)
+    {:stop, :normal}
+  end
+
+  @doc """
+  Creates random string of given length
+  Used for random nonce creation
+  """
+  def random_string(length) do
+    :crypto.strong_rand_bytes(length) |> Base.url_encode64 |> binary_part(0, length)
+  end
+
+  defp process_ident(str) when is_bitstring(str), do: String.replace(str, " ", "_")
+end
