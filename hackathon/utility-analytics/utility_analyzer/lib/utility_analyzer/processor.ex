@@ -12,7 +12,7 @@ defmodule UtilityAnalyzer.Processor do
   Example
   pdftotext("/home/samar/projects/hackr/utility-analytics/pdfs/abc.pdf", "/tmp/abc.txt")
   """
-  def pdftotext(infile, outfile) do
+  def pdftotext(infile, outfile \\ "-") do
     Sh.pdftotext "-q", infile, outfile
   end
 

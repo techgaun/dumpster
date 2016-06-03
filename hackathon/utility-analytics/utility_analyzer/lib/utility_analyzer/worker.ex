@@ -20,8 +20,9 @@ defmodule UtilityAnalyzer.Worker do
   end
 
   def handle_info(:extrparse, pdf_file) do
-    outfile = "#{tmp_dir}/#{random_string(20)}.txt"
-    Processor.pdftotext(pdf_file[:name], outfile)
+    # outfile = "#{tmp_dir}/#{random_string(20)}.txt"
+    pdf_text = Processor.pdftotext(pdf_file[:name])
+    Logger.warn inspect pdf_text
     {:stop, :normal}
   end
 
@@ -33,5 +34,5 @@ defmodule UtilityAnalyzer.Worker do
     :crypto.strong_rand_bytes(length) |> Base.url_encode64 |> binary_part(0, length)
   end
 
-  defp process_ident(str) when is_bitstring(str), do: String.replace(str, ~r/(\/|\s|-|\.)/, "_") |> String.strip(?_) |> String.to_atom 
+  defp process_ident(str) when is_bitstring(str), do: String.replace(str, ~r/(\/|\s|-|\.)/, "_") |> String.strip(?_) |> String.to_atom
 end
