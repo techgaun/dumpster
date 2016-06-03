@@ -23,7 +23,7 @@ defmodule UtilityAnalyzer.Worker do
     # outfile = "#{tmp_dir}/#{random_string(20)}.txt"
     pdf_text = Processor.pdftotext(pdf_file[:name])
     Logger.warn inspect pdf_text
-    {:stop, :normal}
+    {:stop, :normal, pdf_file}
   end
 
   @doc """
