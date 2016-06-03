@@ -1,12 +1,12 @@
 defmodule UtilityAnalyzer.Worker do
   use GenServer
   alias UtilityAnalyzer.Processor
+  alias UtilityAnalyzer.Parser.Ameren
   import UtilityAnalyzer.Config
   require Logger
 
   def start_link(pdf_file) do
     Logger.debug inspect "Starting worker process for #{pdf_file[:name]}"
-    Logger.debug inspect pdf_file
     GenServer.start_link(__MODULE__, pdf_file, name: process_ident(pdf_file[:name]))
   end
 
@@ -22,7 +22,12 @@ defmodule UtilityAnalyzer.Worker do
   def handle_info(:extrparse, pdf_file) do
     # outfile = "#{tmp_dir}/#{random_string(20)}.txt"
     pdf_text = Processor.pdftotext(pdf_file[:name])
-    Logger.warn inspect pdf_text
+    pdf_text_len = pdf_text |> byte_size
+    if pdf_text_len < 100 do
+      Logger.warn inspect "The pdf file #{pdf_file[:name]} is not a native pdf"
+    else
+      parsed_text = Ameren.parse(pdf_text)
+    end
     {:stop, :normal, pdf_file}
   end
 
