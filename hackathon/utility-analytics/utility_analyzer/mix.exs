@@ -15,7 +15,7 @@ defmodule UtilityAnalyzer.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
+    [applications: [:exfswatch, :logger],
      mod: {UtilityAnalyzer, []}]
   end
 
@@ -30,7 +30,8 @@ defmodule UtilityAnalyzer.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:sh, "~> 1.1"}
+      {:sh, "~> 1.1"},
+      {:exfswatch, "~> 0.1.1"}
     ]
   end
 end

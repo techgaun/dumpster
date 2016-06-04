@@ -22,8 +22,14 @@ defmodule UtilityAnalyzer do
     |> Enum.each(fn fname ->
       require Logger
       Logger.debug inspect "Starting child for #{fname}"
-      Supervisor.start_child(sup_pid, [[name: fname]])
+      start_worker(fname, sup_pid)
     end)
+    {:ok, _pid} = UtilityAnalyzer.Watcher.start
     {:ok, sup_pid}
   end
+
+  @doc """
+  Starts worker process for given filename
+  """
+  def start_worker(fname, sup_pid \\ :utility_analyzer), do: Supervisor.start_child(sup_pid, [[name: fname]])
 end
