@@ -9,7 +9,7 @@ defmodule UtilityAnalyzer do
 
     children = [
       # Define workers and child supervisors to be supervised
-      worker(UtilityAnalyzer.Worker, []),
+      worker(UtilityAnalyzer.Worker, [], restart: :temporary),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
