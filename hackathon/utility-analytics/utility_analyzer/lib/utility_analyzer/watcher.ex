@@ -13,7 +13,9 @@ defmodule UtilityAnalyzer.Watcher do
   callback for file addition event
   """
   def callback(file_path, [:modified, :closed]) do
-    UtilityAnalyzer.start_worker(file_path)
+    if Path.extname(file_path) === ".pdf" do
+      UtilityAnalyzer.start_worker(file_path)
+    end
   end
 
   @doc """

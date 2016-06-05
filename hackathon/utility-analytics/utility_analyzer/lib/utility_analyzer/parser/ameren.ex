@@ -6,7 +6,15 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   and creates usable csv from it   
   """
 
-  def parse(_buff) do
+  def parse(buff) do
+    require Logger
+    parsed_str_list = buff
+      |> String.chunk(:printable)
+    parsed_str_list
+    |> Enum.each(fn x ->
+      Logger.warn inspect x
+    end)
+    Logger.warn inspect Enum.count(parsed_str_list)
     :ok
   end
 end
