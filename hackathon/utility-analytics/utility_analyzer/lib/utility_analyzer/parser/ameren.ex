@@ -52,29 +52,34 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def match(utility_data, "Current Charge Detail for Statement" <> date_plus_total = item) do
     date = run_regex(:date, date_plus_total)
     %{utility_data[:data] | date: date}
-    transform(utility_data, item)
+    |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Due Date:" <> due_date = item) do
     due_date = run_regex(:date, due_date)
     %{utility_data[:data] | due_date: due_date}
-    transform(utility_data, item)
+    |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Previous Statement" <> prev_stmt = item) do
     prev_stmt = run_regex(:dollar, prev_stmt)
     %{utility_data[:data] | prev_amount: prev_stmt}
-    transform(utility_data, item)
+    |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
     %{utility_data[:data] | amount: due_amt}
-    transform(utility_data, item)
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Last Payment" <> last_payment_date = item) do
+    last_payment_date = run_regex(:date, last_payment_date)
+    %{utility_data[:data] | amount: last_payment_date}
+    |> transform(utility_data[:lst], item)
   end
   def match(utility_data, _) do
     utility_data
   end
 
-  def transform(utility_data, item) do
-    %{data: utility_data[:data], lst: utility_data[:lst] -- [item]}
+  def transform(utility_struct, lst, item) do
+    %{data: utility_struct, lst: lst -- [item]}
   end
 
   @doc """
