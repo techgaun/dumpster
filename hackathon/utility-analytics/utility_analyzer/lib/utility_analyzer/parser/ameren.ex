@@ -10,16 +10,23 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     require Logger
     parsed_str_list = buff
       |> String.chunk(:printable)
-    valid_str_list =
+    valid_str =
       parsed_str_list
       |> Enum.filter(fn x ->
         String.printable?(x)
       end)
-    valid_str_list
+      |> Enum.join
+      |> String.split("\n")
+      |> Enum.map(fn x ->
+        String.strip(x)
+      end)
+      |> Enum.filter(fn x ->
+        String.length(x) > 0
+      end)
+    valid_str
     |> Enum.each(fn x ->
-      Logger.error inspect x
+      Logger.warn inspect x
     end)
-    Logger.warn inspect Enum.count(valid_str_list)
     :ok
   end
 end
