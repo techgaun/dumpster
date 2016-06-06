@@ -48,24 +48,25 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
 
   def match(utility_data, "Current Charge Detail for Statement" <> date_plus_total) do
-    date =
-      case Regex.run(@re[:date], date_plus_total) do
-        [_ | [match]] ->
-          match
-        _ ->
-          nil
-      end
-    total =
-      case Regex.run(@re[:total], date_plus_total) do
-        [_ | [match]] ->
-          match
-        _ ->
-          nil
-      end
+    date = run_regex(:date, date_plus_total)
+    total = run_regex(:total, date_plus_total)
     Logger.warn inspect utility_data
     Logger.warn inspect {date, total}
   end
   def match(_, _) do
     :ok
+  end
+
+  @doc """
+  Runs regex for given field in given string
+  returns match when one is found otherwise nil
+  """
+  def run_regex(field, haystack) do
+    case Regex.run(@re[field], haystack) do
+      [_ | [match]] ->
+        match
+      _ ->
+        nil
+    end
   end
 end
