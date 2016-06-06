@@ -11,7 +11,8 @@ defmodule UtilityAnalyzer.Parser.Ameren do
 
   @re [
     date: ~r/.*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}).*/,
-    dollar: ~r/.*\$([0-9]{1,}\.[0-9]{1,2})/
+    dollar: ~r/.*\$([0-9]{1,}\.[0-9]{1,2})/,
+    numeric: ~r/(\d{1,})/
   ]
 
   def parse(buff) do
@@ -49,8 +50,24 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     :ok
   end
 
-  def match(utility_data, "Current Charge Detail for Statement" <> date_plus_total = item) do
-    date = run_regex(:date, date_plus_total)
+  @doc """
+  Matches and extracts data into struct and reduces list
+  """
+  def match(utility_data, "Account Number" <> acc_num = item) do
+    acc_num = run_regex(:numeric, acc_num)
+    %{utility_data[:data] | account_num: acc_num}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Customer Name " <> cust_name = item) do
+    %{utility_data[:data] | customer_name: cust_name}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Service Address " <> service_address = item) do
+    %{utility_data[:data] | service_address: service_address}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Current Charge Detail for Statement" <> date = item) do
+    date = run_regex(:date, date)
     %{utility_data[:data] | date: date}
     |> transform(utility_data[:lst], item)
   end
@@ -71,7 +88,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
   def match(utility_data, "Last Payment" <> last_payment_date = item) do
     last_payment_date = run_regex(:date, last_payment_date)
-    %{utility_data[:data] | amount: last_payment_date}
+    %{utility_data[:data] | last_payment_date: last_payment_date}
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, _) do
@@ -89,7 +106,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def run_regex(field, haystack) do
     case Regex.run(@re[field], haystack) do
       [_ | [match]] ->
-        match
+        String.strip(match)
       _ ->
         nil
     end
