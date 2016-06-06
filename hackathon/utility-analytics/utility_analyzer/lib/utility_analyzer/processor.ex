@@ -8,12 +8,13 @@ defmodule UtilityAnalyzer.Processor do
 
   @doc """
   Convert native pdf to text
+  Uses `-raw flag`. There's `-layout` flag too which maintains the layout.
 
   Example
   pdftotext("/home/samar/projects/hackr/utility-analytics/pdfs/abc.pdf", "/tmp/abc.txt")
   """
   def pdftotext(infile, outfile \\ "-") do
-    Sh.pdftotext "-q", "-layout", infile, outfile
+    Sh.pdftotext "-q", "-raw", infile, outfile
   end
 
   @doc """

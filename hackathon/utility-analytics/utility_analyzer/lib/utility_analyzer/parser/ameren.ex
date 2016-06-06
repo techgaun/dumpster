@@ -11,7 +11,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
 
   @re [
     date: ~r/.*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}).*/,
-    total: ~r/.*AMOUNT DUE.*\$([0-9]{1,}\.[0-9]{1,2})/
+    dollar: ~r/.*\$([0-9]{1,}\.[0-9]{1,2})/
   ]
 
   def parse(buff) do
@@ -30,10 +30,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       |> Enum.filter(fn x ->
         String.length(x) > 0
       end)
-    # valid_str_list
-    # |> Enum.each(fn x ->
-    #   Logger.warn inspect x
-    # end)
+    valid_str_list
+    |> Enum.each(fn x ->
+      Logger.warn inspect x
+    end)
     extract(valid_str_list)
     :ok
   end
@@ -42,20 +42,39 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     data =
       lst
       |> Enum.reduce([data: %UtilityData{}, lst: lst], fn x, acc ->
-        # match(acc, x)
-        [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
+        match(acc, x)
+        # [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
       end)
     Logger.warn inspect data
     :ok
   end
 
-  def match(utility_data, "Current Charge Detail for Statement" <> date_plus_total) do
+  def match(utility_data, "Current Charge Detail for Statement" <> date_plus_total = item) do
     date = run_regex(:date, date_plus_total)
-    total = run_regex(:total, date_plus_total)
-    %{utility_data | date: date, amount: total}
+    %{utility_data[:data] | date: date}
+    transform(utility_data, item)
+  end
+  def match(utility_data, "Due Date:" <> due_date = item) do
+    due_date = run_regex(:date, due_date)
+    %{utility_data[:data] | due_date: due_date}
+    transform(utility_data, item)
+  end
+  def match(utility_data, "Previous Statement" <> prev_stmt = item) do
+    prev_stmt = run_regex(:dollar, prev_stmt)
+    %{utility_data[:data] | prev_amount: prev_stmt}
+    transform(utility_data, item)
+  end
+  def match(utility_data, "Amount Due" <> due_amt = item) do
+    due_amt = run_regex(:dollar, due_amt)
+    %{utility_data[:data] | amount: due_amt}
+    transform(utility_data, item)
   end
   def match(utility_data, _) do
     utility_data
+  end
+
+  def transform(utility_data, item) do
+    %{data: utility_data[:data], lst: utility_data[:lst] -- [item]}
   end
 
   @doc """
