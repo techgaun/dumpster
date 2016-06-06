@@ -39,11 +39,12 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
 
   def extract(lst) do
-    data = %UtilityData{amount: 200}
-    lst
-    |> Enum.each(fn x ->
-      Logger.warn inspect match(data, x)
-    end)
+    data =
+      lst
+      |> Enum.reduce(%UtilityData{}, fn x, acc ->
+        match(acc, x)
+      end)
+    Logger.warn inspect data
     :ok
   end
 
@@ -52,8 +53,8 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     total = run_regex(:total, date_plus_total)
     %{utility_data | date: date, amount: total}
   end
-  def match(_, _) do
-    :ok
+  def match(utility_data, _) do
+    utility_data
   end
 
   @doc """
