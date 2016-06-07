@@ -7,6 +7,8 @@ defmodule UtilityAnalyzer.UtilityData do
             prev_amount: nil,
             last_payment_date: nil,
             due_date: nil,
+            delinquent_date: nil,
+            delinquent_amount: nil,
             amount_breakdown: %{},
             seasonal_use: nil,
             meters: [],

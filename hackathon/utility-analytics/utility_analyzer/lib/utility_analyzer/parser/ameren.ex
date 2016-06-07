@@ -11,7 +11,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
 
   @re [
     date: ~r/.*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}).*/,
-    dollar: ~r/.*\$([0-9]{1,}\.[0-9]{1,2})/,
+    dollar: ~r/.*\$([0-9,]{1,}\.[0-9]{1,2})/,
     numeric: ~r/(\d{1,})/
   ]
 
@@ -71,6 +71,11 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     %{utility_data[:data] | date: date}
     |> transform(utility_data[:lst], item)
   end
+  def match(utility_data, "Current Detail for Statement" <> date = item) do
+    date = run_regex(:date, date)
+    %{utility_data[:data] | date: date}
+    |> transform(utility_data[:lst], item)
+  end
   def match(utility_data, "Due Date:" <> due_date = item) do
     due_date = run_regex(:date, due_date)
     %{utility_data[:data] | due_date: due_date}
@@ -82,6 +87,11 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Amount Due" <> due_amt = item) do
+    due_amt = run_regex(:dollar, due_amt)
+    %{utility_data[:data] | amount: due_amt}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Total Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
     %{utility_data[:data] | amount: due_amt}
     |> transform(utility_data[:lst], item)
