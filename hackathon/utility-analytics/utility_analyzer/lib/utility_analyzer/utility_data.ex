@@ -9,11 +9,9 @@ defmodule UtilityAnalyzer.UtilityData do
             due_date: nil,
             amount_breakdown: %{},
             seasonal_use: nil,
-            meter_number: nil,
-            current_reading: nil,
-            prev_reading: nil,
-            current_usage: nil,
-            reading_type: nil,
+            meters: [],
             yearly_usage: %{},
-            usage_details: %{}
+            usage_details: %{},
+            service_type: nil,
+            service_details: %{electric: [], gas: []}
 end

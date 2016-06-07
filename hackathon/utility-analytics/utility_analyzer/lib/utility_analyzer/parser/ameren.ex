@@ -31,10 +31,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       |> Enum.filter(fn x ->
         String.length(x) > 0
       end)
-    valid_str_list
-    |> Enum.each(fn x ->
-      Logger.warn inspect x
-    end)
+    # valid_str_list
+    # |> Enum.each(fn x ->
+    #   Logger.warn inspect x
+    # end)
     extract(valid_str_list)
     :ok
   end
