@@ -37,7 +37,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     # end)
     firstpass_data = extract(valid_str_list)
     Logger.warn inspect firstpass_data[:data]
-    Enum.each(firstpass_data[:lst], fn x -> Logger.warn inspect x end)
+    regex_extract(firstpass_data[:data], firstpass_data[:lst])
     :ok
   end
 
@@ -47,6 +47,12 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       match(acc, x)
       # [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
     end)
+  end
+
+  def regex_extract(utility_struct, rem_list) do
+    rem_str = rem_list
+      |> Enum.join("")
+    Logger.warn inspect rem_str
   end
 
   @doc """
@@ -108,6 +114,14 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def match(utility_data, "Amount After Delinquent Date $" <> delinquent_amount = item) do
     delinquent_amount = run_regex(:dollar, "$#{delinquent_amount}")
     %{utility_data[:data] | delinquent_amount: delinquent_amount}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Rate " <> tariff = item) do
+    %{utility_data[:data] | tariff: tariff}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Secondary Srvc " <> secondary_tariff = item) do
+    %{utility_data[:data] | secondary_tariff: secondary_tariff}
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, _) do

@@ -14,5 +14,6 @@ defmodule UtilityAnalyzer.UtilityData do
             yearly_usage: %{},  # not important right now
             usage_summary: %{},
             usage_details: %{},
-            tariff: nil #eg. 3m Large General, etc.
+            tariff: nil, #eg. 3m Large General, etc.
+            secondary_tariff: nil
 end
