@@ -76,7 +76,6 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     zipcode = run_regex(:zipcode, remnant)
     unless zipcode |> is_nil do
       service_address = "#{service_address} #{remnant}"
-      Logger.warn inspect zipcode
       utility_data = [data: %{utility_data[:data] | zipcode: zipcode}, lst: utility_data[:lst]]
     end
     (if utility_data[:data].service_address |> is_nil, do: %{utility_data[:data] | service_address: service_address}, else: utility_data[:data])
