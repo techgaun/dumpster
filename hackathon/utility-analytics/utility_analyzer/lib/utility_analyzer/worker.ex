@@ -28,6 +28,11 @@ defmodule UtilityAnalyzer.Worker do
     else
       parsed_text = Ameren.parse(pdf_text)
     end
+    # move files anyway to dest_dir
+    unless disable_file_move do
+      File.cp!(pdf_file[:name], "#{dest_dir}/#{Path.basename(pdf_file[:name])}")
+      File.rm!(pdf_file[:name])
+    end
     shutdown(pdf_file)
     {:stop, :normal, pdf_file}
   end

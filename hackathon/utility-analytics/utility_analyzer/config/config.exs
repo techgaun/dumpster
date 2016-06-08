@@ -33,4 +33,7 @@ config :utility_analyzer,
   src_dir: System.get_env("UTILITY_SRC_DIR") || "#{File.cwd!}/files/src",
   dest_dir: System.get_env("UTILITY_DEST_DIR") || "#{File.cwd!}/files/dest",
   result_dir: System.get_env("UTILITY_RESULT_DIR") || "#{File.cwd!}/files/result",
-  tmp_dir: System.get_env("UTILITY_TMP_DIR") || "/tmp"
+  tmp_dir: System.get_env("UTILITY_TMP_DIR") || "/tmp",
+  disable_file_move: false
+
+import_config "#{Mix.env}.exs"
