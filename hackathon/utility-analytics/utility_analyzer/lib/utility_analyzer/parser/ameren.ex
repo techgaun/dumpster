@@ -68,15 +68,15 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
   def match(utility_data, "Current Charge Detail for Statement" <> date = item) do
     date = run_regex(:date, date)
-    %{utility_data[:data] | date: date}
+    %{utility_data[:data] | statement_date: date}
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Current Detail for Statement" <> date = item) do
     date = run_regex(:date, date)
-    %{utility_data[:data] | date: date}
+    %{utility_data[:data] | statement_date: date}
     |> transform(utility_data[:lst], item)
   end
-  def match(utility_data, "Due Date:" <> due_date = item) do
+  def match(utility_data, "Due Date" <> due_date = item) do
     due_date = run_regex(:date, due_date)
     %{utility_data[:data] | due_date: due_date}
     |> transform(utility_data[:lst], item)
@@ -88,17 +88,27 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
   def match(utility_data, "Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
-    %{utility_data[:data] | amount: due_amt}
+    (if utility_data[:data].amount |> is_nil, do: %{utility_data[:data] | amount: due_amt}, else: utility_data[:data])
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Total Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
-    %{utility_data[:data] | amount: due_amt}
+    (if utility_data[:data].amount |> is_nil, do: %{utility_data[:data] | amount: due_amt}, else: utility_data[:data])
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Last Payment" <> last_payment_date = item) do
     last_payment_date = run_regex(:date, last_payment_date)
     %{utility_data[:data] | last_payment_date: last_payment_date}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Delinquent After" <> delinquent_date = item) do
+    last_payment_date = run_regex(:date, delinquent_date)
+    %{utility_data[:data] | delinquent_date: delinquent_date}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Amount After Delinquent Date $" <> delinquent_amount = item) do
+    delinquent_amount = run_regex(:dollar, "$#{delinquent_amount}")
+    %{utility_data[:data] | delinquent_amount: delinquent_amount}
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, _) do
