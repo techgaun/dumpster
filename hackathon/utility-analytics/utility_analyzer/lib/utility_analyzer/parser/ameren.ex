@@ -59,6 +59,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
 
   @doc """
   Matches and extracts data into struct and reduces list
+  the future revisions of the ameren parser should get rid of many of these matches.
   """
   def match(utility_data, "Account Number" <> acc_num = item) do
     acc_num = run_regex(:numeric, acc_num)
@@ -127,7 +128,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Rate " <> tariff = item) do
-    %{utility_data[:data] | tariff: tariff}
+    (if utility_data[:data].tariff |> is_nil, do: %{utility_data[:data] | tariff: tariff}, else: utility_data[:data])
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Secondary Srvc " <> secondary_tariff = item) do
