@@ -35,19 +35,18 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     # |> Enum.each(fn x ->
     #   Logger.warn inspect x
     # end)
-    extract(valid_str_list)
+    firstpass_data = extract(valid_str_list)
+    Logger.warn inspect firstpass_data[:data]
+    Enum.each(firstpass_data[:lst], fn x -> Logger.warn inspect x end)
     :ok
   end
 
   def extract(lst) do
-    data =
-      lst
-      |> Enum.reduce([data: %UtilityData{}, lst: lst], fn x, acc ->
-        match(acc, x)
-        # [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
-      end)
-    Logger.warn inspect data
-    :ok
+    lst
+    |> Enum.reduce([data: %UtilityData{}, lst: lst], fn x, acc ->
+      match(acc, x)
+      # [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
+    end)
   end
 
   @doc """
