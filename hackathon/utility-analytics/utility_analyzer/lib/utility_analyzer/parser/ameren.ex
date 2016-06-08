@@ -9,10 +9,12 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   alias UtilityAnalyzer.UtilityData
   require Logger
 
+  # the module constant below will eventually be a global thing exposed via module
   @re [
     date: ~r/.*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}).*/,
     dollar: ~r/.*\$([0-9,]{1,}\.[0-9]{1,2})/,
-    numeric: ~r/(\d{1,})/
+    numeric: ~r/(\d{1,})/,
+    zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/
   ]
 
   def parse(buff) do
@@ -68,7 +70,16 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Service Address " <> service_address = item) do
-    %{utility_data[:data] | service_address: service_address}
+    # the next line is usually the remaining part of address
+    remnant = utility_data[:lst]
+      |> Enum.at(find_index(utility_data[:lst], item) + 1)
+    zipcode = run_regex(:zipcode, remnant)
+    unless zipcode |> is_nil do
+      service_address = "#{service_address} #{remnant}"
+      Logger.warn inspect zipcode
+      utility_data = [data: %{utility_data[:data] | zipcode: zipcode}, lst: utility_data[:lst]]
+    end
+    (if utility_data[:data].service_address |> is_nil, do: %{utility_data[:data] | service_address: service_address}, else: utility_data[:data])
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Current Charge Detail for Statement" <> date = item) do
@@ -128,8 +139,21 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     utility_data
   end
 
+  @doc """
+  Transform the first pass data structure by reducing list when match is found
+  """
   def transform(utility_struct, lst, item) do
     %{data: utility_struct, lst: lst -- [item]}
+  end
+
+  @doc """
+  find index of item in the list
+  """
+  def find_index(lst, item) do
+    lst
+    |> Enum.find_index(fn x ->
+      x === item
+    end)
   end
 
   @doc """

@@ -2,6 +2,7 @@ defmodule UtilityAnalyzer.UtilityData do
   defstruct account_num: nil,
             customer_name: nil,
             service_address: nil,
+            zipcode: nil,
             statement_date: nil,
             amount: nil,
             prev_amount: nil,
