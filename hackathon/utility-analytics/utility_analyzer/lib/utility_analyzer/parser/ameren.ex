@@ -14,7 +14,8 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     date: ~r/.*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}).*/,
     dollar: ~r/.*\$([0-9,]{1,}\.[0-9]{1,2})/,
     numeric: ~r/(\d{1,})/,
-    zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/
+    zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/,
+    meter_readings_block: ~r/^.*Electric\sMeter\sRead(.*)Usage\sSummary.*$/r
   ]
 
   def parse(buff) do
@@ -47,14 +48,19 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     lst
     |> Enum.reduce([data: %UtilityData{}, lst: lst], fn x, acc ->
       match(acc, x)
-      # [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
     end)
   end
 
   def regex_extract(utility_struct, rem_list) do
     rem_str = rem_list
-      |> Enum.join("")
+      |> Enum.join(" ")
     Logger.warn inspect rem_str
+    meter_reading(utility_struct, rem_str)
+  end
+
+  def meter_reading(utility_struct, str) do
+    meter_reading = run_regex(:meter_readings_block, str)
+    Logger.warn inspect meter_reading
   end
 
   @doc """

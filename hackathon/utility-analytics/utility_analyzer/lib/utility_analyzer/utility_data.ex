@@ -11,7 +11,7 @@ defmodule UtilityAnalyzer.UtilityData do
             delinquent_date: nil,
             delinquent_amount: nil,
             amount_breakdown: %{},
-            meter_readings: [],
+            meter_readings: %{},
             yearly_usage: %{},  # not important right now
             usage_summary: %{},
             usage_details: %{},
