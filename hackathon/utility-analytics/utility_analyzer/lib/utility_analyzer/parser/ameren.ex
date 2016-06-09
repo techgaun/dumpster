@@ -15,7 +15,9 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     dollar: ~r/.*\$([0-9,]{1,}\.[0-9]{1,2})/,
     numeric: ~r/(\d{1,})/,
     zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/,
-    meter_readings_block: ~r/^.*Electric\sMeter\sRead(.*)Usage\sSummary.*$/r
+    meter_readings_block: ~r/^.*Electric\sMeter\sRead(.*)Usage\sSummary.*$/r,
+    meter_reading_header: ~r/METER\sNUMBER.*USAGE/,
+    meter_row: ~r/(\d*\.?\d*)\s(\d*\/\d*\s-\s\d*\/\d*)\s(\d*)\s([a-zA-Z0-9_\s]*)\s(Actual)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s/
   ]
 
   def parse(buff) do
@@ -60,7 +62,19 @@ defmodule UtilityAnalyzer.Parser.Ameren do
 
   def meter_reading(utility_struct, str) do
     meter_reading = run_regex(:meter_readings_block, str)
-    Logger.warn inspect meter_reading
+    case meter_reading |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        [meter_header] =
+          :meter_reading_header
+          |> run_multi_regex(meter_reading)
+        meter_readings =
+          meter_reading
+          |> String.replace(meter_header, "")
+          |> String.strip
+        Logger.warn inspect meter_readings
+    end
   end
 
   @doc """
@@ -170,6 +184,22 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     case Regex.run(@re[field], haystack) do
       [_ | [match]] ->
         String.strip(match)
+      _ ->
+        nil
+    end
+  end
+
+  @doc """
+  Runs regex for given field in given string
+  returns a list unlike the run_regex which returns single match
+  """
+  def run_multi_regex(field, haystack) do
+    case Regex.run(@re[field], haystack) do
+      match ->
+        match
+        |> Enum.map(fn x ->
+          String.strip(x)
+        end)
       _ ->
         nil
     end
