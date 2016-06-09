@@ -16,9 +16,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     numeric: ~r/(\d{1,})/,
     zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/,
     meter_readings_block: ~r/^.*Electric\sMeter\sRead(.*)Usage\sSummary.*$/r,
-    meter_reading_header: ~r/METER\sNUMBER.*USAGE/,
+    meter_reading_header: ~r/METER\sNUMBER.*USAGE/r,
     meter_row: ~r/(\d*\.?\d*)\s(\d*\/\d*\s-\s\d*\/\d*)\s(\d*)\s([a-zA-Z0-9_\s]*)\s(Actual)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s/
   ]
+  @meter_reading_keys ~w(service_from_to service_period usage_type reading_type current_reading prev_reading reading_diff multiplier usage)
 
   def parse(buff) do
     parsed_str_list = buff
@@ -41,8 +42,8 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     #   Logger.warn inspect x
     # end)
     firstpass_data = extract(valid_str_list)
-    Logger.warn inspect firstpass_data[:data]
-    regex_extract(firstpass_data[:data], firstpass_data[:lst])
+    secondpass_data = regex_extract(firstpass_data[:data], firstpass_data[:lst])
+    Logger.warn inspect secondpass_data
     :ok
   end
 
@@ -73,7 +74,24 @@ defmodule UtilityAnalyzer.Parser.Ameren do
           meter_reading
           |> String.replace(meter_header, "")
           |> String.strip
-        Logger.warn inspect meter_readings
+        meter_readings = Regex.scan(@re[:meter_row], meter_readings)
+        case meter_readings do
+          [] ->
+            utility_struct
+          matches ->
+            meter_readings_map =
+              matches
+              |> Enum.map(fn match ->
+                [h | t] = match
+                [meter_num | t] = t
+                reading_map =
+                  @meter_reading_keys
+                  |> Enum.zip(t)
+                  |> Enum.into(%{})
+                %{meter_num => reading_map}
+              end)
+            %{utility_struct | meter_readings: meter_readings_map}
+        end
     end
   end
 
