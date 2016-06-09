@@ -17,7 +17,9 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/,
     meter_readings_block: ~r/^.*Electric\sMeter\sRead(.*)Usage\sSummary.*$/r,
     meter_reading_header: ~r/METER\sNUMBER.*USAGE/r,
-    meter_row: ~r/(\d*\.?\d*)\s(\d*\/\d*\s-\s\d*\/\d*)\s(\d*)\s([a-zA-Z0-9_\s]*)\s(Actual)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s/
+    meter_row: ~r/(\d*\.?\d*)\s(\d*\/\d*\s-\s\d*\/\d*)\s(\d*)\s([a-zA-Z0-9_\s]*)\s(Actual)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s/,
+    usage_summary_block: ~r/^.*Usage\sSummary\s(Total\skWh.*)Rate\s.*$/r,
+    usage_summary_item: ~r/.*\s(\d*\.?\d*)?\s/r
   ]
   @meter_reading_keys ~w(service_from_to service_period usage_type reading_type current_reading prev_reading reading_diff multiplier usage)
 
@@ -58,9 +60,17 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     rem_str = rem_list
       |> Enum.join(" ")
     Logger.warn inspect rem_str
-    meter_reading(utility_struct, rem_str)
+    result =
+      utility_struct
+      |> meter_reading(rem_str)
+      |> usage_summary(rem_str)
+    result
   end
 
+  @doc """
+  Function to extract meter reading whenever possible
+  uses meter number as the key
+  """
   def meter_reading(utility_struct, str) do
     meter_reading = run_regex(:meter_readings_block, str)
     case meter_reading |> is_nil do
@@ -92,6 +102,25 @@ defmodule UtilityAnalyzer.Parser.Ameren do
               end)
             %{utility_struct | meter_readings: meter_readings_map}
         end
+    end
+  end
+
+  @doc """
+  Function to extract usage summary whenever possible
+  """
+  def usage_summary(utility_struct, str) do
+    usage_summary = run_regex(:usage_summary_block, str)
+    case usage_summary |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        usage_summary_list =
+          @re[:usage_summary_item]
+          |> Regex.scan(usage_summary)
+          |> Enum.map(fn [key, val] ->
+            %{String.strip(key) => val}
+          end)
+        %{utility_struct | usage_summary: usage_summary_list}
     end
   end
 
@@ -167,7 +196,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
   def match(utility_data, "Rate " <> tariff = item) do
     (if utility_data[:data].tariff |> is_nil, do: %{utility_data[:data] | tariff: tariff}, else: utility_data[:data])
-    |> transform(utility_data[:lst], item)
+    |> transform(utility_data[:lst], item, true)
   end
   def match(utility_data, "Secondary Srvc " <> secondary_tariff = item) do
     %{utility_data[:data] | secondary_tariff: secondary_tariff}
@@ -180,8 +209,13 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   @doc """
   Transform the first pass data structure by reducing list when match is found
   """
-  def transform(utility_struct, lst, item) do
-    %{data: utility_struct, lst: lst -- [item]}
+  def transform(utility_struct, lst, item, nr \\ false) do
+    case nr do
+      true ->
+        %{data: utility_struct, lst: lst}
+      false ->
+        %{data: utility_struct, lst: lst -- [item]}
+    end
   end
 
   @doc """
