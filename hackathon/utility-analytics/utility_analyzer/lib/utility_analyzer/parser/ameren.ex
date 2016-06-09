@@ -21,9 +21,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     usage_summary_block: ~r/^.*Usage\sSummary\s(Total\skWh.*)Rate\s.*$/r,
     usage_summary_item: ~r/.*\s(\d*\.?\d*)?\s/r,
     usage_detail_block: ~r/^.*DESCRIPTION\sUSAGE\sUNIT\sRATE\sCHARGE(.*)Total\sService\sAmount.*$/r,
-    usage_detail_item: ~r/.*/
+    usage_detail_item: ~r/(.*)\s([0-9,]{1,}\.?\d*)?\s?(kWh|kW)?\s?@?\s?\$?\s?(\d*\.?\d*)?\s?\$([0-9,]{1,}\.?\d*)\s/r
   ]
   @meter_reading_keys ~w(service_from_to service_period usage_type reading_type current_reading prev_reading reading_diff multiplier usage)
+  @usage_detail_keys ~w(usage unit rate charge)
 
   def parse(buff) do
     parsed_str_list = buff
@@ -66,6 +67,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       utility_struct
       |> meter_reading(rem_str)
       |> usage_summary(rem_str)
+      |> usage_detail(rem_str)
     result
   end
 
@@ -137,9 +139,14 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       false ->
         usage_detail_list =
           @re[:usage_detail_item]
-          |> Regex.scan(usage_summary)
-          |> Enum.map(fn [key, val] ->
-            %{String.strip(key) => val}
+          |> Regex.scan(usage_detail)
+          |> Enum.map(fn [h | t] ->
+            [desc | t] = t
+            usage_detail_map =
+              @usage_detail_keys
+              |> Enum.zip(t)
+              |> Enum.into(%{})
+            %{String.strip(desc) => usage_detail_map}
           end)
         %{utility_struct | usage_details: usage_detail_list}
     end
