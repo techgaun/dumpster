@@ -42,14 +42,8 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       |> Enum.filter(fn x ->
         String.length(x) > 0
       end)
-    # valid_str_list
-    # |> Enum.each(fn x ->
-    #   Logger.warn inspect x
-    # end)
     firstpass_data = extract(valid_str_list)
     secondpass_data = regex_extract(firstpass_data[:data], firstpass_data[:lst])
-    Logger.warn inspect secondpass_data
-    :ok
   end
 
   def extract(lst) do
@@ -62,7 +56,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def regex_extract(utility_struct, rem_list) do
     rem_str = rem_list
       |> Enum.join(" ")
-    Logger.warn inspect rem_str
+    # Logger.warn inspect rem_str
     result =
       utility_struct
       |> meter_reading(rem_str)

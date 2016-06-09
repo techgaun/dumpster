@@ -27,6 +27,7 @@ defmodule UtilityAnalyzer.Worker do
       Logger.warn inspect "The pdf file #{pdf_file[:name]} is not a native pdf"
     else
       parsed_text = Ameren.parse(pdf_text)
+      Logger.warn inspect parsed_text
     end
     # move files anyway to dest_dir
     unless disable_file_move do
