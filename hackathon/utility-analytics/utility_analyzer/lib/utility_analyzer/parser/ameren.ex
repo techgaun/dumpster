@@ -23,7 +23,8 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     usage_detail_block: ~r/^.*DESCRIPTION\sUSAGE\sUNIT\sRATE\sCHARGE(.*)Total\sService\sAmount.*$/r,
     usage_detail_item: ~r/(.*)\s([0-9,]{1,}\.?\d*)?\s?(kWh|kW)?\s?@?\s?\$?\s?(\d*\.?\d*)?\s?\$([0-9,]{1,}\.?\d*)\s/r,
     small_usage_detail_block: ~r/Current\sCharge?\sDetail\sfor\sStatement\s[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}(.*)\sAmount\sDue/r,
-    small_usage_detail_item: ~r/(.*)\s\$([0-9,]{1,}\.?\d*)\s/r
+    small_usage_detail_item: ~r/(.*)\s\$([0-9,]{1,}\.?\d*)\s/r,
+    small_tariff: ~r/Electric\sCharge\s-\s(.*)\s\$/r
   ]
   @meter_reading_keys ~w(service_from_to service_period usage_type reading_type current_reading prev_reading reading_diff multiplier usage)
   @usage_detail_keys ~w(usage unit rate charge)
@@ -186,6 +187,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
           |> Enum.reduce(%{}, fn ({key, val}, acc) ->
             Map.put(acc, key, val)
           end)
+        tariff = run_regex(:small_tariff, usage_detail)
+        if utility_struct.tariff |> is_nil do
+          utility_struct = %{utility_struct | tariff: tariff}
+        end
         %{utility_struct | usage_detail: usage_detail_list}
     end
   end
