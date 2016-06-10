@@ -27,13 +27,13 @@ defmodule UtilityAnalyzer.Worker do
       Logger.warn inspect "The pdf file #{pdf_file[:name]} is not a native pdf"
     else
       parsed_data = Ameren.parse(pdf_text)
-      Logger.warn inspect parsed_data
+      Logger.debug inspect parsed_data
       Repo.start_link
       changeset = UtilityData.changeset(%UtilityData{}, Map.from_struct(parsed_data))
       if changeset.valid? do
         Repo.insert(changeset)
       else
-        Logger.warn inspect changeset
+        Logger.debug inspect changeset
         Logger.warn inspect "The parsed data is not good enough to insert. Not inserting..."
       end
     end
