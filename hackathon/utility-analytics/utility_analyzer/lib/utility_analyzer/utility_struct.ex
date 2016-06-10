@@ -1,4 +1,4 @@
-defmodule UtilityAnalyzer.UtilityData do
+defmodule UtilityAnalyzer.UtilityStruct do
   defstruct account_num: nil,
             customer_name: nil,
             service_address: nil,
@@ -10,9 +10,9 @@ defmodule UtilityAnalyzer.UtilityData do
             due_date: nil,
             delinquent_date: nil,
             delinquent_amount: nil,
-            meter_readings: %{},
+            meter_readings: [],
             yearly_usage: %{},  # not important right now
-            usage_summary: %{},
+            usage_summary: [],
             usage_detail: [],
             tariff: nil, #eg. 3m Large General, etc.
             secondary_tariff: nil

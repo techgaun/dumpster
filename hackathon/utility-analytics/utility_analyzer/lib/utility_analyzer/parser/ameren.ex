@@ -6,7 +6,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   and creates usable csv from it   
   """
 
-  alias UtilityAnalyzer.UtilityData
+  alias UtilityAnalyzer.UtilityStruct
   require Logger
 
   # the module constant below will eventually be a global thing exposed via module
@@ -50,7 +50,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
 
   def extract(lst) do
     lst
-    |> Enum.reduce([data: %UtilityData{}, lst: lst], fn x, acc ->
+    |> Enum.reduce([data: %UtilityStruct{}, lst: lst], fn x, acc ->
       match(acc, x)
     end)
   end
