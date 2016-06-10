@@ -13,7 +13,7 @@ defmodule UtilityAnalyzer.UtilityData do
             meter_readings: %{},
             yearly_usage: %{},  # not important right now
             usage_summary: %{},
-            usage_details: %{},
+            usage_detail: [],
             tariff: nil, #eg. 3m Large General, etc.
             secondary_tariff: nil
 end

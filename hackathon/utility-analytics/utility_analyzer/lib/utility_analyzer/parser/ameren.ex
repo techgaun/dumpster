@@ -21,7 +21,9 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     usage_summary_block: ~r/^.*Usage\sSummary\s(Total\skWh.*)Rate\s.*$/r,
     usage_summary_item: ~r/(.*)\s(\d*\.?\d*)?\s/r,
     usage_detail_block: ~r/^.*DESCRIPTION\sUSAGE\sUNIT\sRATE\sCHARGE(.*)Total\sService\sAmount.*$/r,
-    usage_detail_item: ~r/(.*)\s([0-9,]{1,}\.?\d*)?\s?(kWh|kW)?\s?@?\s?\$?\s?(\d*\.?\d*)?\s?\$([0-9,]{1,}\.?\d*)\s/r
+    usage_detail_item: ~r/(.*)\s([0-9,]{1,}\.?\d*)?\s?(kWh|kW)?\s?@?\s?\$?\s?(\d*\.?\d*)?\s?\$([0-9,]{1,}\.?\d*)\s/r,
+    small_usage_detail_block: ~r/Current\sCharge?\sDetail\sfor\sStatement\s[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}(.*)\sAmount\sDue/r,
+    small_usage_detail_item: ~r/(.*)\s\$([0-9,]{1,}\.?\d*)\s/r
   ]
   @meter_reading_keys ~w(service_from_to service_period usage_type reading_type current_reading prev_reading reading_diff multiplier usage)
   @usage_detail_keys ~w(usage unit rate charge)
@@ -56,12 +58,17 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def regex_extract(utility_struct, rem_list) do
     rem_str = rem_list
       |> Enum.join(" ")
-    # Logger.warn inspect rem_str
+    Logger.warn inspect rem_str
     result =
       utility_struct
       |> meter_reading(rem_str)
       |> usage_summary(rem_str)
       |> usage_detail(rem_str)
+    if Enum.count(result.usage_detail) === 0 do
+      result =
+        result
+        |> small_usage_detail(rem_str)
+    end
     result
   end
 
@@ -142,7 +149,31 @@ defmodule UtilityAnalyzer.Parser.Ameren do
               |> Enum.into(%{})
             %{String.strip(desc) => usage_detail_map}
           end)
-        %{utility_struct | usage_details: usage_detail_list}
+        %{utility_struct | usage_detail: usage_detail_list}
+    end
+  end
+
+  @doc """
+  Function to extract usage details for small bills
+  """
+  def small_usage_detail(utility_struct, str) do
+    usage_detail = run_regex(:small_usage_detail_block, str)
+    case usage_detail |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        usage_detail_list =
+          @re[:small_usage_detail_item]
+          |> Regex.scan(usage_detail)
+          |> Enum.map(fn [h | t] ->
+            [desc | t] = t
+            usage_detail_map =
+              @usage_detail_keys
+              |> Enum.zip(t)
+              |> Enum.into(%{})
+            %{String.strip(desc) => usage_detail_map}
+          end)
+        %{utility_struct | usage_detail: usage_detail_list}
     end
   end
 
@@ -174,12 +205,12 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def match(utility_data, "Current Charge Detail for Statement" <> date = item) do
     date = run_regex(:date, date)
     %{utility_data[:data] | statement_date: date}
-    |> transform(utility_data[:lst], item)
+    |> transform(utility_data[:lst], item, true)
   end
   def match(utility_data, "Current Detail for Statement" <> date = item) do
     date = run_regex(:date, date)
     %{utility_data[:data] | statement_date: date}
-    |> transform(utility_data[:lst], item)
+    |> transform(utility_data[:lst], item, true)
   end
   def match(utility_data, "Due Date" <> due_date = item) do
     due_date = run_regex(:date, due_date)
@@ -194,7 +225,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   def match(utility_data, "Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
     (if utility_data[:data].amount |> is_nil, do: %{utility_data[:data] | amount: due_amt}, else: utility_data[:data])
-    |> transform(utility_data[:lst], item)
+    |> transform(utility_data[:lst], item, true)
   end
   def match(utility_data, "Total Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
