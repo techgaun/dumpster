@@ -64,7 +64,7 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       |> meter_reading(rem_str)
       |> usage_summary(rem_str)
       |> usage_detail(rem_str)
-    if Enum.count(result.usage_detail) === 0 do
+    if map_size(result.usage_detail) === 0 do
       result =
         result
         |> small_usage_detail(rem_str)
@@ -103,7 +103,11 @@ defmodule UtilityAnalyzer.Parser.Ameren do
                   @meter_reading_keys
                   |> Enum.zip(t)
                   |> Enum.into(%{})
-                %{meter_num => reading_map}
+                # %{meter_num => reading_map}
+                {meter_num, reading_map}
+              end)
+              |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+                Map.put(acc, key, val)
               end)
             %{utility_struct | meter_readings: meter_readings_map}
         end
@@ -123,7 +127,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
           @re[:usage_summary_item]
           |> Regex.scan(usage_summary)
           |> Enum.map(fn [h, key, val] ->
-            %{String.strip(key) => val}
+            {String.strip(key), val}
+          end)
+          |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+            Map.put(acc, key, val)
           end)
         %{utility_struct | usage_summary: usage_summary_list}
     end
@@ -147,7 +154,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
               @usage_detail_keys
               |> Enum.zip(t)
               |> Enum.into(%{})
-            %{String.strip(desc) => usage_detail_map}
+            {String.strip(desc), usage_detail_map}
+          end)
+          |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+            Map.put(acc, key, val)
           end)
         %{utility_struct | usage_detail: usage_detail_list}
     end
@@ -171,7 +181,10 @@ defmodule UtilityAnalyzer.Parser.Ameren do
               @usage_detail_keys
               |> Enum.zip(t)
               |> Enum.into(%{})
-            %{String.strip(desc) => usage_detail_map}
+            {String.strip(desc), usage_detail_map}
+          end)
+          |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+            Map.put(acc, key, val)
           end)
         %{utility_struct | usage_detail: usage_detail_list}
     end

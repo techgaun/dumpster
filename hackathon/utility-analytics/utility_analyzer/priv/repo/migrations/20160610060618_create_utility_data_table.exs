@@ -7,12 +7,12 @@ defmodule UtilityAnalyzer.Repo.Migrations.AddUtilityDataTable do
       add :customer_name, :string
       add :service_address, :string
       add :zipcode, :string, size: 10
-      add :statement_date, :datetime
+      add :statement_date, :string
       add :amount, :string
       add :prev_amount, :string
-      add :last_payment_date, :datetime
-      add :due_date, :datetime
-      add :delinquent_date, :datetime
+      add :last_payment_date, :string
+      add :due_date, :string
+      add :delinquent_date, :string
       add :delinquent_amount, :string
       add :meter_readings, :map
       add :yearly_usage, :map, default: nil
@@ -20,6 +20,7 @@ defmodule UtilityAnalyzer.Repo.Migrations.AddUtilityDataTable do
       add :usage_detail, :map
       add :tariff, :string, size: 150
       add :secondary_tariff, :string, size: 150
+      add :inserted_at, :datetime
     end
   end
 end

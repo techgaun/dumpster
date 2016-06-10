@@ -10,10 +10,10 @@ defmodule UtilityAnalyzer.UtilityStruct do
             due_date: nil,
             delinquent_date: nil,
             delinquent_amount: nil,
-            meter_readings: [],
+            meter_readings: %{},
             yearly_usage: %{},  # not important right now
-            usage_summary: [],
-            usage_detail: [],
+            usage_summary: %{},
+            usage_detail: %{},
             tariff: nil, #eg. 3m Large General, etc.
             secondary_tariff: nil
 end

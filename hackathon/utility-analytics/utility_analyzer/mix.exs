@@ -33,7 +33,8 @@ defmodule UtilityAnalyzer.Mixfile do
       {:sh, "~> 1.1"},
       {:exfswatch, "~> 0.1.1"},
       {:postgrex, "~> 0.11.1"},
-      {:ecto, "~> 1.1.8"}
+      {:ecto, "~> 1.1.8"},
+      {:poison, "~> 2.0"}
     ]
   end
 end
