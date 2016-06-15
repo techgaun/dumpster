@@ -5,9 +5,9 @@ defmodule PG2Influx do
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
-
-    db_worker = worker(BrighterlinkIo.DeviceDataDB, [Moebius.get_connection])
-    {:ok, pid} = Supervisor.start_link [db_worker], [strategy: :one_for_one, name: :pg2influx]
+    influx_worker = BrighterlinkIo.InfluxConnection.child_spec
+    pg_worker = worker(BrighterlinkIo.DeviceDataDB, [Moebius.get_connection])
+    {:ok, pid} = Supervisor.start_link [influx_worker, pg_worker], [strategy: :one_for_one, name: :pg2influx]
     devices = read_devices |> Enum.join(", ")
     query = "select * from devices_data where id in (#{devices}) order by device_timestamp asc;"
     data = query
