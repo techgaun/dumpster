@@ -2,6 +2,7 @@ use Mix.Config
 
 config :moebius, connection: [
   url: System.get_env("DATABASE_URL"),
+  ssl: true,
   pool_mod: DBConnection.Poolboy
 ]
 
