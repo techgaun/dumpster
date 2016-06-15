@@ -1,7 +1,6 @@
 defmodule PG2Influx do
   use Application
   import BrighterlinkIo.DeviceDataDB
-  require Logger
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false

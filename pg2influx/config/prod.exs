@@ -11,4 +11,5 @@ config :pg2influx, BrighterlinkIo.InfluxConnection,
   auth: [
     username: System.get_env("INFLUX_USER"),
     password: System.get_env("INFLUX_PASSWORD")
-  ]
+  ],
+  database: "brighterlink_io"

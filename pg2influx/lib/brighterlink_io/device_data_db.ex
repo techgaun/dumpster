@@ -19,17 +19,42 @@ defmodule BrighterlinkIo.DeviceDataDB do
   end
 
   def write_to_influx(row) do
-    Logger.warn inspect row
     timestamp = row.device_timestamp
       |> datetime_to_ts
-    data = %PowerSeries{timestamp: timestamp}
-    data
-    |> InfluxConnection.write(
-      [
-        async: true,
-        precision: :seconds
-      ]
-    )
+
+    unless row.data["Grid"] |> is_nil do
+      row.data["Grid"]
+      |> prewarm_data(timestamp)
+      |> Enum.each(fn {ts, val} ->
+        data = %PowerSeries{
+          timestamp: ts,
+          tags: %PowerSeries.Tags{
+            device_id: row.device_id
+          },
+          fields: %PowerSeries.Fields{
+            grid: val
+          }
+        }
+
+        data
+        |> InfluxConnection.write(
+          [
+            async: true,
+            precision: :seconds
+          ]
+        )
+      end)
+    end
+  end
+
+  def prewarm_data(lst, start_ts) do
+    count = lst |> Enum.count
+    0..count
+    |> Enum.map(fn x ->
+      x + start_ts
+    end)
+    |> Enum.to_list
+    |> Enum.zip(lst)
   end
 
   @doc """

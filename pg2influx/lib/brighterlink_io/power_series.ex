@@ -2,7 +2,7 @@ defmodule BrighterlinkIo.PowerSeries do
   use Instream.Series
 
   series do
-    database "brighterlink_io"
+    database Application.get_env(:pg2influx, BrighterlinkIo.InfluxConnection)[:database]
     measurement "power"
 
     tag :device_id

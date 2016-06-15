@@ -10,4 +10,5 @@ config :moebius, connection: [
 
 config :pg2influx, BrighterlinkIo.InfluxConnection,
   host: "localhost",
-  port: 8086
+  port: 8086,
+  database: "brighterlink_io_test"
