@@ -4,3 +4,11 @@ config :moebius, connection: [
   url: System.get_env("DATABASE_URL"),
   pool_mod: DBConnection.Poolboy
 ]
+
+config :pg2influx, BrighterlinkIo.InfluxConnection,
+  host: "localhost",
+  port: 8086,
+  auth: [
+    username: System.get_env("INFLUX_USER"),
+    password: System.get_env("INFLUX_PASSWORD")
+  ]

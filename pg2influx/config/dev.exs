@@ -7,3 +7,7 @@ config :moebius, connection: [
   database: "brighterlink_io_dev",
   pool_mod: DBConnection.Poolboy
 ]
+
+config :pg2influx, BrighterlinkIo.InfluxConnection,
+  host: "localhost",
+  port: 8086
