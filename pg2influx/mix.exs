@@ -14,7 +14,10 @@ defmodule Pg2influx.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :moebius]]
+    [
+      applications: [:logger, :moebius],
+      mod: {PG2Influx, []}
+    ]
   end
 
   # Dependencies can be Hex packages:
@@ -28,7 +31,8 @@ defmodule Pg2influx.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:moebius, "~> 2.0.2"}
+      {:moebius, "~> 2.0.2"},
+      {:poison, "~> 2.0"}
     ]
   end
 end

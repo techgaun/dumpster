@@ -10,6 +10,7 @@
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], []},
   "mimerl": {:hex, :mimerl, "1.0.2", "993f9b0e084083405ed8252b99460c4f0563e41729ab42d9074fd5e52439be88", [:rebar3], []},
   "moebius": {:hex, :moebius, "2.0.2", "41e53b4c7f7caed0eda4554c705cfd053810c6e8b20e2bcb7c831d9e307a0547", [:mix], [{:timex, "~> 2.0", [hex: :timex, optional: false]}, {:postgrex, "~> 0.11.0", [hex: :postgrex, optional: false]}, {:poolboy, "~> 1.5", [hex: :poolboy, optional: false]}, {:poison, "~> 2.0.1", [hex: :poison, optional: true]}, {:inflex, "~> 1.5.0", [hex: :inflex, optional: false]}]},
+  "poison": {:hex, :poison, "2.0.1", "81248a36d1b602b17ea6556bfa8952492091f01af05173de11f8b297e2bbf088", [:mix], []},
   "poolboy": {:hex, :poolboy, "1.5.1", "6b46163901cfd0a1b43d692657ed9d7e599853b3b21b95ae5ae0a777cf9b6ca8", [:rebar], []},
   "postgrex": {:hex, :postgrex, "0.11.1", "f48af70c0a58b9bfd1aaa456ec4273624554cfb837726b6a7f0701da4a94b2dd", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, optional: false]}, {:db_connection, "~> 0.2", [hex: :db_connection, optional: false]}, {:connection, "~> 1.0", [hex: :connection, optional: false]}]},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0", "edee20847c42e379bf91261db474ffbe373f8acb56e9079acb6038d4e0bf414f", [:rebar, :make], []},
