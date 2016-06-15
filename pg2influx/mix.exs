@@ -15,7 +15,7 @@ defmodule Pg2influx.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [
-      applications: [:logger, :moebius],
+      applications: [:logger, :moebius, :instream],
       mod: {PG2Influx, []}
     ]
   end
@@ -32,7 +32,8 @@ defmodule Pg2influx.Mixfile do
   defp deps do
     [
       {:moebius, "~> 2.0.2"},
-      {:poison, "~> 2.0"}
+      {:poison, "~> 2.0"},
+      {:instream, "~> 0.12.0"}
     ]
   end
 end

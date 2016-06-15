@@ -7,6 +7,7 @@
   "hackney": {:hex, :hackney, "1.6.0", "8d1e9440c9edf23bf5e5e2fe0c71de03eb265103b72901337394c840eec679ac", [:rebar3], [{:ssl_verify_fun, "1.1.0", [hex: :ssl_verify_fun, optional: false]}, {:mimerl, "1.0.2", [hex: :mimerl, optional: false]}, {:metrics, "1.0.1", [hex: :metrics, optional: false]}, {:idna, "1.2.0", [hex: :idna, optional: false]}, {:certifi, "0.4.0", [hex: :certifi, optional: false]}]},
   "idna": {:hex, :idna, "1.2.0", "ac62ee99da068f43c50dc69acf700e03a62a348360126260e87f2b54eced86b2", [:rebar3], []},
   "inflex": {:hex, :inflex, "1.5.0", "e4ff5d900280b2011b24d1ac1c4590986ee5add2ea644c9894e72213cf93ff0b", [:mix], []},
+  "instream": {:hex, :instream, "0.12.0", "c3a3570d266b0c8086add0e4c4e59d8341c25da998ea526be72fbf53e37bbfa1", [:mix], [{:poolboy, "~> 1.5", [hex: :poolboy, optional: false]}, {:poison, "~> 1.4 or ~> 2.0", [hex: :poison, optional: false]}, {:hackney, "~> 1.1", [hex: :hackney, optional: false]}]},
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], []},
   "mimerl": {:hex, :mimerl, "1.0.2", "993f9b0e084083405ed8252b99460c4f0563e41729ab42d9074fd5e52439be88", [:rebar3], []},
   "moebius": {:hex, :moebius, "2.0.2", "41e53b4c7f7caed0eda4554c705cfd053810c6e8b20e2bcb7c831d9e307a0547", [:mix], [{:timex, "~> 2.0", [hex: :timex, optional: false]}, {:postgrex, "~> 0.11.0", [hex: :postgrex, optional: false]}, {:poolboy, "~> 1.5", [hex: :poolboy, optional: false]}, {:poison, "~> 2.0.1", [hex: :poison, optional: true]}, {:inflex, "~> 1.5.0", [hex: :inflex, optional: false]}]},

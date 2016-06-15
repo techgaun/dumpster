@@ -7,7 +7,7 @@ defmodule PG2Influx do
     import Supervisor.Spec, warn: false
 
     db_worker = worker(BrighterlinkIo.DeviceDataDB, [Moebius.get_connection])
-    {:ok, pid} = Supervisor.start_link [db_worker], strategy: :one_for_one
+    {:ok, pid} = Supervisor.start_link [db_worker], [strategy: :one_for_one, name: :pg2influx]
     devices = read_devices |> Enum.join(", ")
     query = "select * from devices_data where id in (#{devices}) order by device_timestamp asc;"
     data = query
