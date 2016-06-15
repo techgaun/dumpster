@@ -39,7 +39,6 @@ defmodule PG2Influx do
   def execute_migration(query) do
     data = query
       |> db_query
-    Logger.warn inspect data
     data
     |> Enum.each(fn x ->
       write_to_influx(x)
