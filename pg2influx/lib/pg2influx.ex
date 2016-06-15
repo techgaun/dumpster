@@ -22,11 +22,11 @@ defmodule PG2Influx do
   end
 
   def loop_query(devices, limit, 0) do
-    query = "select * from devices_data where id in (#{devices}) order by device_timestamp asc limit #{limit} offset #{0};"
+    query = "select * from devices_data where device_id in (#{devices}) order by device_timestamp asc limit #{limit} offset #{0};"
     execute_migration(query)
   end
   def loop_query(devices, limit, offset) do
-    query = "select * from devices_data where id in (#{devices}) order by device_timestamp asc limit #{limit} offset #{offset};"
+    query = "select * from devices_data where device_id in (#{devices}) order by device_timestamp asc limit #{limit} offset #{offset};"
     execute_migration(query)
     if offset <= limit do
       limit = offset
@@ -39,7 +39,7 @@ defmodule PG2Influx do
   def execute_migration(query) do
     data = query
       |> db_query
-
+    Logger.warn inspect data
     data
     |> Enum.each(fn x ->
       write_to_influx(x)
