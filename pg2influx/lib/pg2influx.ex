@@ -21,8 +21,6 @@ defmodule PG2Influx do
     execute_migration(query)
   end
   def loop_query(devices, limit, offset) do
-    require Logger
-    Logger.warn inspect offset
     query = "select * from devices_data where id in (#{devices}) order by device_timestamp asc limit #{limit} offset #{offset};"
     execute_migration(query)
     if offset <= limit do
