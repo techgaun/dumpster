@@ -5,7 +5,7 @@ defmodule BrighterlinkIo.DeviceDataDB do
   alias BrighterlinkIo.{PowerSeries, InfluxConnection}
   require Logger
 
-  def read_device_data(query) do
+  def db_query(query) do
     query
     |> Db.run
   end
