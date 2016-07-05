@@ -95,6 +95,11 @@ rx_data, rx_addr_tuple = skt.recvfrom(255) # refer to Digi XBee API
 # Print the response
 print_ZCL_response(rx_data, rx_addr_tuple)
 
+# Example write response (data from recvfrom): 
+# 0x18 (frame control) 0xf (transaction sq number) 0x4 (write attributes response) 
+# 0x0 (status: successful)
+
+
 
 #-------------------------Finish up
 # Close socket
