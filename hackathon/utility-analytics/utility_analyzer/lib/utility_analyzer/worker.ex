@@ -1,6 +1,6 @@
 defmodule UtilityAnalyzer.Worker do
   use GenServer
-  alias UtilityAnalyzer.Processor
+  alias UtilityAnalyzer.{Processor, Repo, UtilityData}
   alias UtilityAnalyzer.Parser.Ameren
   import UtilityAnalyzer.Config
   require Logger
@@ -26,7 +26,21 @@ defmodule UtilityAnalyzer.Worker do
     if pdf_text_len < 100 do
       Logger.warn inspect "The pdf file #{pdf_file[:name]} is not a native pdf"
     else
-      parsed_text = Ameren.parse(pdf_text)
+      parsed_data = Ameren.parse(pdf_text)
+      Logger.debug inspect parsed_data
+      Repo.start_link
+      changeset = UtilityData.changeset(%UtilityData{}, Map.from_struct(parsed_data))
+      if changeset.valid? do
+        Repo.insert(changeset)
+      else
+        Logger.debug inspect changeset
+        Logger.warn inspect "The parsed data is not good enough to insert. Not inserting..."
+      end
+    end
+    # move files anyway to dest_dir
+    unless disable_file_move do
+      File.cp!(pdf_file[:name], "#{dest_dir}/#{Path.basename(pdf_file[:name])}")
+      File.rm!(pdf_file[:name])
     end
     shutdown(pdf_file)
     {:stop, :normal, pdf_file}

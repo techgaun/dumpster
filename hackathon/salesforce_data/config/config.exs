@@ -10,16 +10,29 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :utility_analyzer, key: :value
+#     config :salesforce_data, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:utility_analyzer, :key)
+#     Application.get_env(:salesforce_data, :key)
 #
 # Or configure a 3rd-party app:
 #
 #     config :logger, level: :info
 #
+config :salesforce_data, SalesforceData.Repo,
+    adapter: Ecto.Adapters.Postgres,
+    database: System.get_env("DB_NAME"),
+    hostname: System.get_env("DB_HOST"),
+    username: System.get_env("DB_USER"),
+    password: System.get_env("DB_PASS"),
+    port: 5432,
+    ssl: true
+
+config :salesforce_data,
+  src_dir: System.get_env("UTILITY_SRC_DIR") || "#{File.cwd!}/files/src"
+
+config :logger, level: :info
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
@@ -28,12 +41,3 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
-
-config :utility_analyzer,
-  src_dir: System.get_env("UTILITY_SRC_DIR") || "#{File.cwd!}/files/src",
-  dest_dir: System.get_env("UTILITY_DEST_DIR") || "#{File.cwd!}/files/dest",
-  result_dir: System.get_env("UTILITY_RESULT_DIR") || "#{File.cwd!}/files/result",
-  tmp_dir: System.get_env("UTILITY_TMP_DIR") || "/tmp",
-  disable_file_move: false
-
-import_config "#{Mix.env}.exs"

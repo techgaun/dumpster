@@ -3,4 +3,5 @@ defmodule UtilityAnalyzer.Config do
   def dest_dir, do: Application.get_env(:utility_analyzer, :dest_dir)
   def result_dir, do: Application.get_env(:utility_analyzer, :result_dir)
   def tmp_dir, do: Application.get_env(:utility_analyzer, :tmp_dir)
+  def disable_file_move, do: Application.get_env(:utility_analyzer, :disable_file_move)
 end

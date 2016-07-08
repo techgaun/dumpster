@@ -6,14 +6,28 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   and creates usable csv from it   
   """
 
-  alias UtilityAnalyzer.UtilityData
+  alias UtilityAnalyzer.UtilityStruct
   require Logger
 
+  # the module constant below will eventually be a global thing exposed via module
   @re [
     date: ~r/.*([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}).*/,
     dollar: ~r/.*\$([0-9,]{1,}\.[0-9]{1,2})/,
-    numeric: ~r/(\d{1,})/
+    numeric: ~r/(\d{1,})/,
+    zipcode: ~r/^.*(\d{5}(?:[-\s]\d{4})?)$/,
+    meter_readings_block: ~r/^.*Electric\sMeter\sRead(.*)Usage\sSummary.*$/r,
+    meter_reading_header: ~r/METER\sNUMBER.*USAGE/r,
+    meter_row: ~r/(\d*\.?\d*)\s(\d*\/\d*\s-\s\d*\/\d*)\s(\d*)\s([a-zA-Z0-9_\s]*)\s(Actual)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s(\d*\.?\d*)\s/,
+    usage_summary_block: ~r/^.*Usage\sSummary\s(Total\skWh.*)Rate\s.*$/r,
+    usage_summary_item: ~r/(.*)\s(\d*\.?\d*)?\s/r,
+    usage_detail_block: ~r/^.*DESCRIPTION\sUSAGE\sUNIT\sRATE\sCHARGE(.*)Total\sService\sAmount.*$/r,
+    usage_detail_item: ~r/(.*)\s([0-9,]{1,}\.?\d*)?\s?(kWh|kW)?\s?@?\s?\$?\s?(\d*\.?\d*)?\s?\$([0-9,]{1,}\.?\d*)\s/r,
+    small_usage_detail_block: ~r/Current\sCharge?\sDetail\sfor\sStatement\s[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}(.*)\sAmount\sDue/r,
+    small_usage_detail_item: ~r/(.*)\s\$([0-9,]{1,}\.?\d*)\s/r,
+    small_tariff: ~r/Electric\sCharge\s-\s(.*)\s\$/r
   ]
+  @meter_reading_keys ~w(service_from_to service_period usage_type reading_type current_reading prev_reading reading_diff multiplier usage)
+  @usage_detail_keys ~w(usage unit rate charge)
 
   def parse(buff) do
     parsed_str_list = buff
@@ -31,27 +45,159 @@ defmodule UtilityAnalyzer.Parser.Ameren do
       |> Enum.filter(fn x ->
         String.length(x) > 0
       end)
-    # valid_str_list
-    # |> Enum.each(fn x ->
-    #   Logger.warn inspect x
-    # end)
-    extract(valid_str_list)
-    :ok
+    firstpass_data = extract(valid_str_list)
+    secondpass_data = regex_extract(firstpass_data[:data], firstpass_data[:lst])
   end
 
   def extract(lst) do
-    data =
-      lst
-      |> Enum.reduce([data: %UtilityData{}, lst: lst], fn x, acc ->
-        match(acc, x)
-        # [data: match(acc[:data], x), lst: acc[:lst] -- [x]]
-      end)
-    Logger.warn inspect data
-    :ok
+    lst
+    |> Enum.reduce([data: %UtilityStruct{}, lst: lst], fn x, acc ->
+      match(acc, x)
+    end)
+  end
+
+  def regex_extract(utility_struct, rem_list) do
+    rem_str = rem_list
+      |> Enum.join(" ")
+    Logger.warn inspect rem_str
+    result =
+      utility_struct
+      |> meter_reading(rem_str)
+      |> usage_summary(rem_str)
+      |> usage_detail(rem_str)
+    if map_size(result.usage_detail) === 0 do
+      result =
+        result
+        |> small_usage_detail(rem_str)
+    end
+    result
+  end
+
+  @doc """
+  Function to extract meter reading whenever possible
+  uses meter number as the key
+  """
+  def meter_reading(utility_struct, str) do
+    meter_reading = run_regex(:meter_readings_block, str)
+    case meter_reading |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        [meter_header] =
+          :meter_reading_header
+          |> run_multi_regex(meter_reading)
+        meter_readings =
+          meter_reading
+          |> String.replace(meter_header, "")
+          |> String.strip
+        meter_readings = Regex.scan(@re[:meter_row], meter_readings)
+        case meter_readings do
+          [] ->
+            utility_struct
+          matches ->
+            meter_readings_map =
+              matches
+              |> Enum.map(fn match ->
+                [h | t] = match
+                [meter_num | t] = t
+                reading_map =
+                  @meter_reading_keys
+                  |> Enum.zip(t)
+                  |> Enum.into(%{})
+                # %{meter_num => reading_map}
+                {meter_num, reading_map}
+              end)
+              |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+                Map.put(acc, key, val)
+              end)
+            %{utility_struct | meter_readings: meter_readings_map}
+        end
+    end
+  end
+
+  @doc """
+  Function to extract usage summary whenever possible
+  """
+  def usage_summary(utility_struct, str) do
+    usage_summary = run_regex(:usage_summary_block, str)
+    case usage_summary |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        usage_summary_list =
+          @re[:usage_summary_item]
+          |> Regex.scan(usage_summary)
+          |> Enum.map(fn [h, key, val] ->
+            {String.strip(key), val}
+          end)
+          |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+            Map.put(acc, key, val)
+          end)
+        %{utility_struct | usage_summary: usage_summary_list}
+    end
+  end
+
+  @doc """
+  Function to extract usage details whenever possible
+  """
+  def usage_detail(utility_struct, str) do
+    usage_detail = run_regex(:usage_detail_block, str)
+    case usage_detail |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        usage_detail_list =
+          @re[:usage_detail_item]
+          |> Regex.scan(usage_detail)
+          |> Enum.map(fn [h | t] ->
+            [desc | t] = t
+            usage_detail_map =
+              @usage_detail_keys
+              |> Enum.zip(t)
+              |> Enum.into(%{})
+            {String.strip(desc), usage_detail_map}
+          end)
+          |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+            Map.put(acc, key, val)
+          end)
+        %{utility_struct | usage_detail: usage_detail_list}
+    end
+  end
+
+  @doc """
+  Function to extract usage details for small bills
+  """
+  def small_usage_detail(utility_struct, str) do
+    usage_detail = run_regex(:small_usage_detail_block, str)
+    case usage_detail |> is_nil do
+      true ->
+        utility_struct
+      false ->
+        usage_detail_list =
+          @re[:small_usage_detail_item]
+          |> Regex.scan(usage_detail)
+          |> Enum.map(fn [h | t] ->
+            [desc | t] = t
+            usage_detail_map =
+              @usage_detail_keys
+              |> Enum.zip(t)
+              |> Enum.into(%{})
+            {String.strip(desc), usage_detail_map}
+          end)
+          |> Enum.reduce(%{}, fn ({key, val}, acc) ->
+            Map.put(acc, key, val)
+          end)
+        tariff = run_regex(:small_tariff, usage_detail)
+        if utility_struct.tariff |> is_nil do
+          utility_struct = %{utility_struct | tariff: tariff}
+        end
+        %{utility_struct | usage_detail: usage_detail_list}
+    end
   end
 
   @doc """
   Matches and extracts data into struct and reduces list
+  the future revisions of the ameren parser should get rid of many of these matches.
   """
   def match(utility_data, "Account Number" <> acc_num = item) do
     acc_num = run_regex(:numeric, acc_num)
@@ -63,20 +209,28 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Service Address " <> service_address = item) do
-    %{utility_data[:data] | service_address: service_address}
+    # the next line is usually the remaining part of address
+    remnant = utility_data[:lst]
+      |> Enum.at(find_index(utility_data[:lst], item) + 1)
+    zipcode = run_regex(:zipcode, remnant)
+    unless zipcode |> is_nil do
+      service_address = "#{service_address} #{remnant}"
+      utility_data = [data: %{utility_data[:data] | zipcode: zipcode}, lst: utility_data[:lst]]
+    end
+    (if utility_data[:data].service_address |> is_nil, do: %{utility_data[:data] | service_address: service_address}, else: utility_data[:data])
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Current Charge Detail for Statement" <> date = item) do
     date = run_regex(:date, date)
-    %{utility_data[:data] | date: date}
-    |> transform(utility_data[:lst], item)
+    %{utility_data[:data] | statement_date: date}
+    |> transform(utility_data[:lst], item, true)
   end
   def match(utility_data, "Current Detail for Statement" <> date = item) do
     date = run_regex(:date, date)
-    %{utility_data[:data] | date: date}
-    |> transform(utility_data[:lst], item)
+    %{utility_data[:data] | statement_date: date}
+    |> transform(utility_data[:lst], item, true)
   end
-  def match(utility_data, "Due Date:" <> due_date = item) do
+  def match(utility_data, "Due Date" <> due_date = item) do
     due_date = run_regex(:date, due_date)
     %{utility_data[:data] | due_date: due_date}
     |> transform(utility_data[:lst], item)
@@ -88,12 +242,12 @@ defmodule UtilityAnalyzer.Parser.Ameren do
   end
   def match(utility_data, "Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
-    %{utility_data[:data] | amount: due_amt}
-    |> transform(utility_data[:lst], item)
+    (if utility_data[:data].amount |> is_nil, do: %{utility_data[:data] | amount: due_amt}, else: utility_data[:data])
+    |> transform(utility_data[:lst], item, true)
   end
   def match(utility_data, "Total Amount Due" <> due_amt = item) do
     due_amt = run_regex(:dollar, due_amt)
-    %{utility_data[:data] | amount: due_amt}
+    (if utility_data[:data].amount |> is_nil, do: %{utility_data[:data] | amount: due_amt}, else: utility_data[:data])
     |> transform(utility_data[:lst], item)
   end
   def match(utility_data, "Last Payment" <> last_payment_date = item) do
@@ -101,12 +255,48 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     %{utility_data[:data] | last_payment_date: last_payment_date}
     |> transform(utility_data[:lst], item)
   end
+  def match(utility_data, "Delinquent After" <> delinquent_date = item) do
+    last_payment_date = run_regex(:date, delinquent_date)
+    %{utility_data[:data] | delinquent_date: delinquent_date}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Amount After Delinquent Date $" <> delinquent_amount = item) do
+    delinquent_amount = run_regex(:dollar, "$#{delinquent_amount}")
+    %{utility_data[:data] | delinquent_amount: delinquent_amount}
+    |> transform(utility_data[:lst], item)
+  end
+  def match(utility_data, "Rate " <> tariff = item) do
+    (if utility_data[:data].tariff |> is_nil, do: %{utility_data[:data] | tariff: tariff}, else: utility_data[:data])
+    |> transform(utility_data[:lst], item, true)
+  end
+  def match(utility_data, "Secondary Srvc " <> secondary_tariff = item) do
+    %{utility_data[:data] | secondary_tariff: secondary_tariff}
+    |> transform(utility_data[:lst], item)
+  end
   def match(utility_data, _) do
     utility_data
   end
 
-  def transform(utility_struct, lst, item) do
-    %{data: utility_struct, lst: lst -- [item]}
+  @doc """
+  Transform the first pass data structure by reducing list when match is found
+  """
+  def transform(utility_struct, lst, item, nr \\ false) do
+    case nr do
+      true ->
+        %{data: utility_struct, lst: lst}
+      false ->
+        %{data: utility_struct, lst: lst -- [item]}
+    end
+  end
+
+  @doc """
+  find index of item in the list
+  """
+  def find_index(lst, item) do
+    lst
+    |> Enum.find_index(fn x ->
+      x === item
+    end)
   end
 
   @doc """
@@ -117,6 +307,22 @@ defmodule UtilityAnalyzer.Parser.Ameren do
     case Regex.run(@re[field], haystack) do
       [_ | [match]] ->
         String.strip(match)
+      _ ->
+        nil
+    end
+  end
+
+  @doc """
+  Runs regex for given field in given string
+  returns a list unlike the run_regex which returns single match
+  """
+  def run_multi_regex(field, haystack) do
+    case Regex.run(@re[field], haystack) do
+      match ->
+        match
+        |> Enum.map(fn x ->
+          String.strip(x)
+        end)
       _ ->
         nil
     end

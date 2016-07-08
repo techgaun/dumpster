@@ -18,3 +18,12 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
           [applications: [:utility_analyzer]]
         end
 
+## Configuration
+
+You can place all the files to be parsed in `{PROJECT_ROOT}/files/src`. You can also drop new files as you go in that directory.
+
+## Usage
+
+```
+mix run --no-halt
+```
