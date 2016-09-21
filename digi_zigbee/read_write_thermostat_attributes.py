@@ -4,8 +4,8 @@
 # For information refer to ZIGBEE CLUSTER LIBRARY SPECIFICATION (ZigBee Alliance)
 #
 
-# Prints received ZCL response: data and address
-def print_ZCL_response(rx_data, rx_addr_tuple):
+# Prints received response: data and address
+def print_recv_response(rx_data, rx_addr_tuple):
     print "Received address tuple =", rx_addr_tuple
     print "Endpoint =", hex(rx_addr_tuple[1])
     print "Profile =", hex(rx_addr_tuple[2])
@@ -59,7 +59,7 @@ count = skt.sendto(zcl_frame, 0, destination_address_tuple)
 rx_data, rx_addr_tuple = skt.recvfrom(255) 
 
 # Print the response
-print_ZCL_response(rx_data, rx_addr_tuple)
+print_recv_response(rx_data, rx_addr_tuple)
 
 # Example read response (data from recvfrom): 
 # 0x18 (frame control) 0xf (transaction sq number) 0x1 (command id: read response) 
@@ -93,7 +93,7 @@ count = skt.sendto(zcl_frame, 0, destination_address_tuple)
 rx_data, rx_addr_tuple = skt.recvfrom(255) # refer to Digi XBee API
 
 # Print the response
-print_ZCL_response(rx_data, rx_addr_tuple)
+print_recv_response(rx_data, rx_addr_tuple)
 
 # Example write response (data from recvfrom): 
 # 0x18 (frame control) 0xf (transaction sq number) 0x4 (write attributes response) 
