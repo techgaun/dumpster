@@ -9,15 +9,6 @@ import struct
 socket_timeout = 5
 
 
-def print_recv_payload(rx_data):
-    """Print returned payload from a call to recvfrom."""
-    print "Payload =",
-    #  for i in range(len(rx_data)):
-    for byte in rx_data:
-        print hex(ord(byte)),
-    print
-
-
 def print_addr_tuple(addr_tuple):
     """Print a Digi formatted address tuple."""
     print "\nReceived address tuple:"
@@ -41,7 +32,8 @@ def open_and_bind_socket(src_endpoint, xbee_param=XBS_PROT_TRANSPORT):
 def convert_digi_addr_to_lit_end(addr_str):
     r"""Convert Digi formatted address to a little endian hex string.
 
-    Example: "[fffe]!" to "\xfe\xff"
+    Example: "[1234]!" to "\x34\x12"
+    "[07:06:05:04:03:02:01:00]!" to "\x00\x01\x02\x03\x04\x05\x06\x07"
     """
     addr_stripped = addr_str.translate(None, '[]:!')
     addr_hex = addr_stripped.decode("hex")
@@ -53,7 +45,7 @@ def send_ieee_address_req(zdo_socket, trans_id, network_addr, req_type=0):
     """Send IEEE address request.
 
     trans_id: integer 0 to 255
-    network_addr_str: Digi format. Example: '[f07a]!'
+    network_addr: Digi format. Example: '[f07a]!'
     """
     network_addr_lit_end = convert_digi_addr_to_lit_end(network_addr)
     trans_id_hex = struct.pack("B", trans_id)
@@ -96,8 +88,6 @@ def print_partial_neighbor_table(rx_data):
     print "Neighbor Table Entries =", rx_data[2].encode("hex")
     print "Start Index =", rx_data[3].encode("hex")
     print "Neighbor Table List Count =", rx_data[4].encode("hex")
-    # "\x00\x13\xa2\x00\x40\xd4\x69\x97"
-    # "\x00\x01\x02\x03\x04\x05\x06\x07"
     offset = 5
     for i in range(ord(rx_data[4])):
         neighbor_table = rx_data[offset:]
@@ -109,7 +99,6 @@ def print_partial_neighbor_table(rx_data):
         print "Depth = ", neighbor_table[20].encode("hex")
         print "LQI = ", neighbor_table[21].encode("hex")
         offset += 22
-    return ord(rx_data[4])
 
 
 def print_full_neighbor_table(zdo_socket, addr_str):
