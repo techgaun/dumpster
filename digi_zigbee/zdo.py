@@ -7,16 +7,14 @@ import struct
 import sys
 
 # Globals
-socket_timeout = 10
+socket_timeout = 30
 
 
 def print_addr_tuple(addr_tuple):
     """Print a Digi formatted address tuple."""
-    print "\nAddress tuple:"
-    print "Address =", addr_tuple[0]
-    print "Endpoint =", hex(addr_tuple[1])
-    print "Profile =", hex(addr_tuple[2])
-    print "Cluster =", hex(addr_tuple[3])
+    print "\nAddress tuple =  (Address:", addr_tuple[0], "Endpoint =",\
+          hex(addr_tuple[1]), "Profile =", hex(addr_tuple[2]), "Cluster =",\
+          hex(addr_tuple[3]), ")"
 
 
 def print_raw_payload(rx_data):
@@ -45,6 +43,33 @@ def convert_digi_addr_to_lit_end(addr_str):
     addr_hex = addr_stripped.decode("hex")
     addr_lit_endian = addr_hex[::-1]
     return addr_lit_endian
+
+
+class NetworkAddress:
+    """Network Address."""
+
+    cluster_id_req = 0x0000
+    cluster_id_resp = 0x8000
+
+    def __init__(self):
+        """init."""
+        pass
+
+    def build_tx_payload(self, ieee_addr, trans_id=1, req_type=0):
+        """Return formatted payload."""
+        ieee_addr_lit_end = convert_digi_addr_to_lit_end(ieee_addr)
+        trans_id_hex = struct.pack("B", trans_id)
+        req_type_hex = struct.pack("B", req_type)
+        payload = trans_id_hex + ieee_addr_lit_end + req_type_hex
+        print "\nPayload =", payload.encode("hex")
+        return payload
+
+    def parse_rx_payload(self, response):
+        """Parse partial response."""
+        print "\nTansaction ID =", response[0].encode("hex")
+        print "Status =", response[1].encode("hex")
+        print "IEEE Address =", response[9:1:-1].encode("hex")
+        print "Network Address =", response[11:9:-1].encode("hex")
 
 
 class IeeeAddress:
@@ -234,12 +259,12 @@ def print_neighbor_table(zdo_socket, addr_str):
 
 def print_ieee_address(zdo_socket, network_addr):
     """A test function."""
-    broadcast_addr = "[00:00:00:00:00:00:ff:ff]!"
+    # broadcast_addr = "[00:00:00:00:00:00:ff:ff]!"
     i = IeeeAddress()
     endpoint = 0x00
     profile_id = 0x0000
     cluster_id = i.cluster_id_req
-    dest_addr_tuple = (broadcast_addr, endpoint, profile_id, cluster_id, 0, 0)
+    dest_addr_tuple = (network_addr, endpoint, profile_id, cluster_id, 0, 0)
     print "#" * 15, "IEEE Address for", network_addr
     print_addr_tuple(dest_addr_tuple)
     payload = i.build_tx_payload(network_addr)
@@ -259,7 +284,7 @@ def print_routing_table(zdo_socket, addr_str):
     print ">" * 15, "Routing Table for", addr_str
     print_addr_tuple(dest_addr_tuple)
     next_index = 0
-    while next_index == 0:
+    while next_index == 0:  # next_index != -1 to print all entries
         payload = n.build_tx_payload(start_index=next_index)
         zdo_socket.sendto(payload, 0, dest_addr_tuple)
         rx_data, rx_addr_tuple = zdo_socket.recvfrom(255)
@@ -268,19 +293,53 @@ def print_routing_table(zdo_socket, addr_str):
         next_index = n.next_start_index(rx_data)
 
 
+def print_network_address(zdo_socket, ieee_addr):
+    """A test function."""
+    broadcast_addr = "[00:00:00:00:00:00:ff:ff]!"
+    i = NetworkAddress()
+    endpoint = 0x00
+    profile_id = 0x0000
+    cluster_id = i.cluster_id_req
+    dest_addr_tuple = (broadcast_addr, endpoint, profile_id, cluster_id, 0, 0)
+    print "#" * 15, "Network Address Request and Response"
+    print_addr_tuple(dest_addr_tuple)
+    payload = i.build_tx_payload(ieee_addr)
+    zdo_socket.sendto(payload, 0, dest_addr_tuple)
+    rx_data, rx_addr_tuple = zdo_socket.recvfrom(255)
+    print_raw_payload(rx_data)
+    i.parse_rx_payload(rx_data)
+
+
 def test():
     """Test function."""
     zdo_socket = open_and_bind_socket(0, xbee_param=XBS_PROT_APS)
     zdo_socket.settimeout(socket_timeout)
-    network_addr_list = ['0000!', '[762a]!', '[c38f]!']
-    # ['[0000]!', '[8927]!', '[b7bb]!', '[050f]!']
-    for addr_str in network_addr_list:
+    # If you want to enable Python-level ACKs
+    # zdo_socket.setsockopt(XBS_SOL_EP, XBS_SO_EP_SYNC_TX, 1)
+    prompt = "0:exit, 1:ieee address, 2:network address, " + \
+             "3:neighbor table, 4:routing table >"
+    key = 1
+    while key != 0:
         try:
-            print_ieee_address(zdo_socket, addr_str)
-            print_neighbor_table(zdo_socket, addr_str)
-            print_routing_table(zdo_socket, addr_str)
+            key = input(prompt)
+            if key == 0:
+                break
+            elif key == 1:
+                network_addr = raw_input("Network Address: ")
+                print_ieee_address(zdo_socket, network_addr)
+            elif key == 2:
+                ieee_addr = raw_input("IEEE Address: ")
+                print_network_address(zdo_socket, ieee_addr)
+            elif key == 3:
+                addr = raw_input("IEEE or Network Address: ")
+                print_neighbor_table(zdo_socket, addr)
+            elif key == 4:
+                addr = raw_input("IEEE or Network Address: ")
+                print_routing_table(zdo_socket, addr)
+            else:
+                print "\nWrong key!"
         except timeout:
-            print "Socket timeout for", addr_str
+            print "Socket timeout"
     zdo_socket.close()
 
 # Run main
