@@ -423,16 +423,16 @@ def test_zdos():
             if key == 0:
                 break
             elif key == 1:
-                network_addr = raw_input("Network Address: ")
+                network_addr = raw_input("Network Address (Digi format): ")
                 print_ieee_address(zdo_socket, network_addr)
             elif key == 2:
-                ieee_addr = raw_input("IEEE Address: ")
+                ieee_addr = raw_input("IEEE Address (Digi format): ")
                 print_network_address(zdo_socket, ieee_addr)
             elif key == 3:
-                addr = raw_input("IEEE or Network Address: ")
+                addr = raw_input("IEEE or Network Address (Digi format): ")
                 print_neighbor_table(zdo_socket, addr)
             elif key == 4:
-                addr = raw_input("IEEE or Network Address: ")
+                addr = raw_input("IEEE or Network Address (Digi format): ")
                 print_routing_table(zdo_socket, addr)
             else:
                 print "\nWrong key!"
