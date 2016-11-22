@@ -365,8 +365,7 @@ def listen_print_any_zdo():
 
 def test_read_attributes():
     """Test function."""
-
-    endpoint = 0x0a  # Thermostat endpoint on Schneider 8600
+    endpoint = 0x01  # 0x0a for Schneider 8600, 0x01 for Telkonet
     profile_id = 0x0104  # Home Automation Profile
     cluster_id = 0x0201  # Thermostat cluster
     zcl_socket = open_socket(endpoint)
