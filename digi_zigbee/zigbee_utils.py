@@ -250,7 +250,7 @@ def print_network_address(zdo_socket, ieee_addr, opt_bitmask=0):
     print "sendto..."
     zdo_socket.sendto(payload, 0, dest_addr_tuple)
     print "recvfrom..."
-    rx_data, rx_addr_tuple = zdo_socket.recvfrom(recv_buf_size)
+    rx_data, rx_addr_tuple = zdo_socket.recvfrom(rec_buf_size)
     print_raw_payload(rx_data)
     i.parse_rx_payload(rx_data)
 
@@ -412,7 +412,7 @@ def test_read_attributes():
 def test_zdos():
     """Test function."""
     zdo_socket = open_socket(0)
-    # If you want to enable Python-level ACKs
+    # To enable Python-level ACKs
     # zdo_socket.setsockopt(XBS_SOL_EP, XBS_SO_EP_SYNC_TX, 1)
     prompt = "0:exit, 1:ieee address, 2:network address, " + \
              "3:neighbor table, 4:routing table >"
