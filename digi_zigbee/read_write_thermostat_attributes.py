@@ -10,9 +10,7 @@ def print_recv_response(rx_data, rx_addr_tuple):
     print "Endpoint =", hex(rx_addr_tuple[1])
     print "Profile =", hex(rx_addr_tuple[2])
     print "Cluster =", hex(rx_addr_tuple[3])
-    print "Received payload =", rx_data
-    for i in range(len(rx_data)):
-        print hex(ord(rx_data[i]))
+    print "Received payload =", rx_data.encode("hex")
 
 
 # Import Digi xbee and socket modules
@@ -31,7 +29,7 @@ profile_id = 0x0104 # Home Automation Profile
 endpoint = 0x0a # Thermostat device endpoint on Schneider 8600
 cluster_id = 0x0201 # Thermostat cluster
 # Mac address (formmatted) for a thermostat on Digi gateway's ZigBee network
-thermostat_mac_address = "00:1d:35:08:03:16:99:92!" 
+thermostat_mac_address = "00:1d:35:08:03:24:37:91!"
 destination_address_tuple = (thermostat_mac_address, endpoint, profile_id, cluster_id, 0, 0)
 
 
@@ -41,7 +39,7 @@ frame_control = '\x00' # fixed
 transaction_seq_num = '\x0f' # arbitrary 8-bit number
 commmand_id = '\x00' # 00 read, 02 write
 # Occupied cool setpoint: attribute id = 0x0011
-attribute_id = '\x11\x00' # bytestring, little endian
+attribute_id = '\xbd\x06' # bytestring, little endian
 
 # Form ZCL header
 zcl_header = frame_control + transaction_seq_num + commmand_id
@@ -61,10 +59,6 @@ rx_data, rx_addr_tuple = skt.recvfrom(255)
 # Print the response
 print_recv_response(rx_data, rx_addr_tuple)
 
-# Example read response (data from recvfrom): 
-# 0x18 (frame control) 0xf (transaction sq number) 0x1 (command id: read response) 
-# 0x11 0x0 (attribute id) 0x0 (status: success) 0x29 (data type) 
-# 0xd0 0x7 (attribute value = 0x07d6 = 2006 -> 20.06 Celcius)
 
 
 #----------------------------Write a value to an attribute (occupied cool setpoint)
@@ -78,9 +72,9 @@ zcl_header = frame_control + transaction_seq_num + commmand_id
 
 # Form ZCL payload
 # Occupied cool setpoint: attribute id = 0x0011
-attribute_id = '\x11\x00' # bytestring, little endian
-attribute_data_type = '\x29' # indicates 16-bit signed integer 
-attribute_data = '\xb8\x0b' # 0x0bb8 = 3000 -> 30.00 degrees (celcius)
+attribute_id = '\xbd\x06' # bytestring, little endian
+attribute_data_type = '\x30' # indicates 16-bit signed integer
+attribute_data = '\x00' # 0x0bb8 = 3000 -> 30.00 degrees (celcius)
 zcl_payload = attribute_id + attribute_data_type + attribute_data
 
 # Form ZCL frame
