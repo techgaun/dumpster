@@ -11,7 +11,9 @@ function success(data) {
   if (data.success) {
     window.location = "/download/" + dl_dir
   } else {
-    checkDownload(dl_dir, success)
+    setTimeout(() => {
+      checkDownload(dl_dir, success)
+    }, 5000)
   }
 }
 
