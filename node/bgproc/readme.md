@@ -13,3 +13,7 @@
 ### Open app on browser and input `somedir`
 
 url: http://localhost:3000/front/
+
+### Notes
+
+- The frontend keeps on sending ajax without timeout (easily fixable, just lazy)
