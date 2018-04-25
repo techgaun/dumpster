@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ "$1" == "upgrade" ]]; then
+  /opt/letsencrypt-auto renew --no-self-upgrade --debug
+else
+  /opt/letsencrypt-auto certonly --webroot -w /opt/hub_gateway/lib/hub_gateway-0.0.1/priv/static/ -d stage-gateway.casa.iq --debug
+fi

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+red='\033[0;31m'
+green='\033[0;32m'
+nc='\033[0m'
+
+error() {
+  msg="${1:-$default_err}"
+  echo -e "${red}${msg}${nc}"
+  exit 1
+}
+
+msg() {
+  msg="${1:-nothing}"
+  echo -e "${green}${msg}${nc}"
+}
+
+mix dogma || error "Code style linting failed!"
+mix coveralls || error "Code coverage failed!"
+msg "Pre commit tests passed!!!"
