@@ -14,7 +14,7 @@
 		"morgan": "^1.10.0"
 	},
 	"devDependencies": {
-		"mocha": "^8.2.0",
+		"mocha": "^10.2.0",
 		"supertest": "^5.0.0"
 	}
 }
